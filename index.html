@@ -1,0 +1,21 @@
+<script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+<div id="SamplePlayerDivID"></div>
+<script type="text/javascript">
+  var options = {
+    width: 854,
+    height: 480,
+    channel: "teamjokerz",
+    // only needed if your site is also embedded on embed.example.com and othersite.example.com 
+  };
+  var player = new Twitch.Player("SamplePlayerDivID", options);
+  player.setVolume(0.5);
+</script>
+
+<!-- <iframe
+    src="https://player.twitch.tv/?channel=teamjokerz&muted=true"
+    height="720"
+    width="1280"
+    frameborder="0"
+    scrolling="no"
+    allowfullscreen="true">
+</iframe> -->
