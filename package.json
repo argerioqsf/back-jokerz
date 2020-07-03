@@ -2,14 +2,25 @@
   "name": "testes-twitch",
   "version": "1.0.0",
   "description": "teste twithc",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tables": "node src/config/database/tables",
+    "dev": "nodemon",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-promise-router": "^4.0.1",
     "moment": "^2.27.0",
+    "pg": "^8.2.1",
     "tmi.js": "^1.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
   }
 }
