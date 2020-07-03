@@ -391,7 +391,7 @@ async function setPoints (){
 function stopPoints(){
   clearInterval(intervalSetPoints);
 }
-
+///teste
 module.exports = {
   addChannel,
   rmChannel,
