@@ -1,4 +1,4 @@
-const db = require("../../config/database/connect");
+const db = require("../../configs/database/connect");
 
 exports.selectPessoaCanal= async (res)=>{
     try {

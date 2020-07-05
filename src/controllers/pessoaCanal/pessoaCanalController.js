@@ -1,4 +1,4 @@
-const PessoaCanal = require("../models/PessoaCanal");
+const PessoaCanal = require("../../models/PessoaCanal");
 
 const registerPessoaCanal = async (req, res) => {
     const { pessoa_id, canal_id, points, status } = req.body;
