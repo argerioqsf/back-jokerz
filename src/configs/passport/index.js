@@ -4,7 +4,6 @@ const twitchStrategy = require("@d-fischer/passport-twitch").Strategy;
 const Pessoa = require('../../schemas/pessoa');
 
 module.exports = (app) =>{
-    app.use(passport.initialize());
     passport.use(new twitchStrategy({
         clientID: 'cxzb1067dgz0mtca08o9s9k9ny9aqk',
         clientSecret: 'kf020qdbp1ilez5nkvgkfui2xog1qg',
@@ -52,9 +51,9 @@ module.exports = (app) =>{
     passport.deserializeUser(function(user, done) {
         done(null, user);
     });
+    
+    app.use(passport.initialize());
 
     //http://localhost:3333/auth/twitch
     //http://localhost:3333/auth/twitch/callback
-    app.get("/auth/twitch", passport.authenticate("twitch"));
-    app.get("/auth/twitch/callback", passport.authenticate("twitch", { successRedirect: '/home',failureRedirect: "/error" }));
 }

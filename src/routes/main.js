@@ -52,4 +52,6 @@ router.get('/error',(req,res)=>{
     });
 });
 
+router.get("/auth/twitch/callback", passport.authenticate("twitch", { successRedirect: '/home',failureRedirect: "/error" }));
+
 module.exports = router;
