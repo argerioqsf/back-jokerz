@@ -2,56 +2,59 @@ const router = require('express-promise-router')();
 // const botController = require('../controllers/bot/botController');
 const pessoasController = require('../controllers/pessoas/pessoasController');
 const canalController = require('../controllers/canal/canalController');
+const productsController = require('../controllers/products/productsController');
+const authController = require('../controllers/auth/authController');
 var passport = require('passport');
-// const pessoaCanalController = require('../controllers/pessoaCanal/pessoaCanalController');
+const oauth = require('../services/oauthtwitch');
+const uuid = require("uuid").v4;
 
-// // botController.setPoints();
-// // ==> Definindo as rotas do CRUD - 'Product':
-
-// // ==> Rota responsável por criar um novo 'Product': (POST): localhost:3000/api/products
-// // router.post('/products', botController.createProduct);
-// router.post('/addChannel', botController.addChannel);
-// router.post('/rmChannel', botController.rmChannel);
-
-function authenticationMiddleware () {  
-    return function (req, res, next) {
-      if (req.isAuthenticated()) {
-        return next()
-      }
-      res.redirect('/error')
-    }
+const verifyAuth = (req, res, next)=>{
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  console.log('req.cookies[session]: ',req.cookies['session']);
+  if (req.cookies['session']) {
+      next();
+  } else {
+    res.status(403).json({
+        message:"Não possui credenciais"
+    });
   }
-// router.get('/canal/:id', canalController.findCanaisById);
+}
 
-router.get('/pessoas',authenticationMiddleware(), pessoasController.listPessoas);
+//pessoas
+router.get('/pessoas', verifyAuth,pessoasController.listPessoas);
 router.post('/pessoas', pessoasController.registerPessoa);
 router.put('/pessoas/channels', pessoasController.addChannel);
 router.get('/pessoas/status', pessoasController.listPessoasOn);
 router.put('/pessoas/status', pessoasController.setStatusPessoaCanal);
 router.get('/pessoas/points/zerar', pessoasController.zerarPontosPessoas);
 
+//canais
 router.get('/channel', canalController.listCanais);
 router.post('/channel', canalController.registerCanal);
 
-
-// router.post('/pessoa_canal', pessoaCanalController.registerPessoaCanal);
-// router.get('/pessoa_canal', pessoaCanalController.listPessoaCanal);
-// router.post('/pessoa_canal/status', pessoaCanalController.setStatusPessoaCanal);
-
-
-router.get('/home',(req,res)=>{
+//teste
+router.get('/home',verifyAuth,(req,res)=>{
     res.status(200).json({
-        message:"usuario logado, HOME"
+        message:"usuario logado, HOME 2"
     });
 });
 
-router.get('/error',(req,res)=>{
-    res.status(200).json({
-        message:"erro ao logar, HOME",
-        user:req.user
-    });
-});
+//products
+router.get('/products/reload_products_cs',productsController.registerProductsCs);
+router.get('/products'
+,verifyAuth
+,productsController.listProducts);
+router.post('/products/promo'
+// ,verifyAuth
+,productsController.setPromo);
+router.get('/products/promo'
+,verifyAuth
+,productsController.listProductsPromo);
 
-router.get("/auth/twitch/callback", passport.authenticate("twitch", { successRedirect: '/home',failureRedirect: "/error" }));
+//auth
+router.get('/auth/login',passport.authenticate("twitch"));
+router.get('/auth-url-twitch',authController.getUrlTwitch);
+router.get('/auth-from-code-twitch',authController.authFromCode);
 
 module.exports = router;

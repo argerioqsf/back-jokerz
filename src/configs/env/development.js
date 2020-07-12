@@ -2,7 +2,11 @@ const path           = require('path');
 const morgan         = require('morgan');
 const express        = require('express');
 const cors           = require('cors');
-const session = require('express-session')
+var session          = require('express-session');
+var cookieParser     = require("cookie-parser");
+var cookieSession    = require("cookie-session");
+const passport       = require("passport");
+
 // const expressEjsLayouts = require('express-ejs-layouts')
 // const passport = require('passport');
 // const Pessoa = require('../../schemas/pessoa')
@@ -16,10 +20,19 @@ module.exports = (app) =>{
     // app.use('layout extracticStyles',true);
 
     // app.use(expressEjsLayouts);
+    app.use(cookieParser());
+    // app.use(cookieSession({ 
+    //     maxAge: 24 * 60 * 60 * 1000, // one day in miliseconds
+    //     name:'session',
+    //     secret: 'hv$%$$#yFHYGFYHGCFYCyc%$44546dffdg4df6'
+    // }));
+    // app.use(cookieParser());
     app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-    app.use(morgan('dev'));
     app.use(express.json({ type: 'application/vnd.api+json' }));
+    app.use(express.urlencoded({ extended: true }));
+    // app.use(passport.initialize());
+    // app.use(passport.session());
+    app.use(morgan('dev'));
     app.use(cors());
 
 

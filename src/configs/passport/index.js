@@ -1,13 +1,15 @@
 
 const passport       = require("passport");
 const twitchStrategy = require("@d-fischer/passport-twitch").Strategy;
-const Pessoa = require('../../schemas/pessoa');
+const Pessoa         = require('../../schemas/pessoa');
 
 module.exports = (app) =>{
+    
+
     passport.use(new twitchStrategy({
         clientID: 'cxzb1067dgz0mtca08o9s9k9ny9aqk',
         clientSecret: 'kf020qdbp1ilez5nkvgkfui2xog1qg',
-        callbackURL: "http://localhost:3333/auth/twitch/callback",
+        callbackURL: "http://localhost:3000/home",
         scope: ["user_read","channel_read"]
       },
       function(accessToken, refreshToken, profile, done) {
@@ -36,7 +38,16 @@ module.exports = (app) =>{
                         return done(err, user);
                     });
                 } else {
-                    console.log('usuario ja exixte: ',user);
+                    user = user[0];
+                    user.nickname = profile.display_name;
+                    user.name = profile.login;
+                    user.accessTokenTwitch = profile.accessTokenTwitch;
+                    user.refreshTokenTwitch = profile.refreshTokenTwitch;
+                    user.save(function(err) {
+                        if (err) console.log('erro autenticação:',err);
+                        return done(err);
+                    });
+                    console.log('usuario ja existe atualizando informações: ',user);
                     //found user. Return
                     return done(err, user);
                 }
@@ -45,15 +56,15 @@ module.exports = (app) =>{
     ));
     
     passport.serializeUser(function(user, done) {
-        done(null, user);
+        done(null, user._id);
     });
     
-    passport.deserializeUser(function(user, done) {
-        done(null, user);
+    passport.deserializeUser(function(id, done) {
+        Pessoa.findById(id,function(erro,user){
+            done(erro, user);
+        })
     });
-    
-    app.use(passport.initialize());
 
-    //http://localhost:3333/auth/twitch
+    //http://localhost:3333/auth/login
     //http://localhost:3333/auth/twitch/callback
 }

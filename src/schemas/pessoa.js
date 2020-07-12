@@ -25,7 +25,7 @@ const Pessoa = new mongoose.Schema({
 	},
 	points: {
 		type: Number,
-		required: true
+		default:0
 	},
 	channels:[{
 		info_channel:{
@@ -39,6 +39,14 @@ const Pessoa = new mongoose.Schema({
 		points:{
 			type:Number,
 			required:true
+		},
+		banned:{
+			type: Boolean,
+			default:false
+		},
+		subscribe:{
+			type: Boolean,
+			default:false
 		}
 	}],
 	timeon: {
@@ -46,7 +54,17 @@ const Pessoa = new mongoose.Schema({
 	},
 	timeoff: {
 		type: String
-	}
+	},
+	session: {
+		type: String,
+		required:true
+	},
+	permissions:[{ifo_permission:{type: mongoose.Schema.Types.ObjectId, ref:'Permissions'}}],
+	tradelinkSteam:{
+		type:String
+	},
+	secondary_accounts:[{nickname:{type:String,required:true}}]
+
 })
 
 // Pessoa.plugin(passportLocalMongoose, { usernameField: 'name'})

@@ -94,6 +94,38 @@ const registerPessoa = async (req, res) => {
     // });;
 
 };
+ 
+const registerOrUpdatePessoa = async (data) => {
+    const { points = 0, nickname, timeOn = '', timeOff = '', idTwitch, session } = data;
+
+    let info = {
+        points:points,
+        name:nickname,
+        nickname:nickname,
+        timeon:timeOn,
+        timeoff:timeOff,
+        idTwitch:idTwitch,
+        session:session
+    }
+    
+    try {
+        let pessoa = await Pessoa.findOne({idTwitch:idTwitch});
+        if (pessoa) {
+            console.log('pessoa '+pessoa.name+' atualizada');
+            pessoa.nickname=nickname;
+            pessoa.idTwitch=idTwitch;
+            pessoa.session=session;
+            return pessoa.save();
+            // console.log('achou user: ',pessoa);
+        } else {
+            console.log('não achou user');
+            return Pessoa.create(info);
+        }
+    } catch (error) {
+        console.log('error achou user');
+        return null;
+    }
+};
 
 const addChannel = async (req, res) => {
     const { id_user, channel_id } = req.body;
@@ -236,5 +268,6 @@ module.exports = {
     zerarPontosPessoas,
     addChannel,
     setStatusPessoaCanal,
-    setPointPessoaCanal
+    setPointPessoaCanal,
+    registerOrUpdatePessoa
 }

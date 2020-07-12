@@ -413,7 +413,7 @@ async function setPoints (){
     // }).catch((err)=>{
     //   console.log('Erro ao iniciar contagem de pontuação 1',err);
     // })
-  }, 60000);
+  }, 600000);
 }
 
 function stopPoints(){

@@ -1,7 +1,7 @@
 const mongoose = require('../configs/database/connectMongo');
 // const passportLocalMongoose = require('passport-local-mongoose')
 
-const Produts = new mongoose.Schema({
+const Products = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true
@@ -19,23 +19,35 @@ const Produts = new mongoose.Schema({
 		required: true
 	},
 	pricePromo: {
-		type: Number
+		type: Number,
+		default:0
     },
     promo:{
-        type:Boolean
+		type:Boolean,
+		default:false
     },
     imageurl:{
         type:String
     },
-    inspectGame:{
+    inspectGameLink:{
         type:String
     },
     exterior:{
         type:String
     },
+    type:{
+        type:String
+    },
     amount:{
         type:Number
-    }
+	},
+	itemCategory:{
+		type:mongoose.Schema.Types.ObjectId,
+		ref:'Categories'
+	},
+    id_item:{
+        type:String
+    },
 })
 
-module.exports = mongoose.model('Produts', Produts)
+module.exports = mongoose.model('Products', Products)

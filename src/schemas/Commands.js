@@ -1,16 +1,19 @@
 const mongoose = require('../configs/database/connectMongo');
 // const passportLocalMongoose = require('passport-local-mongoose')
 
-const Channel = new mongoose.Schema({
+const Command = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true
-	},
-	linkTwitch:{
+    },
+    describ:{
 		type: String,
 		required: true
-	}
+    },
+    command:{
+		type: String,
+		required: true
+    }
 })
 
-
-module.exports = mongoose.model('Channel', Channel)
+module.exports = mongoose.model('Command', Command)
