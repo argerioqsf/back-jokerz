@@ -15,9 +15,6 @@ const Pessoa = new mongoose.Schema({
 	refreshTokenTwitch:{
 		type:String
 	},
-	idTwitch:{
-		type:String
-	},
 	nickname:{
 		type:String,
 		required:true,
@@ -57,11 +54,12 @@ const Pessoa = new mongoose.Schema({
 	},
 	session: {
 		type: String,
-		required:true
+		select:false
 	},
 	permissions:[{ifo_permission:{type: mongoose.Schema.Types.ObjectId, ref:'Permissions'}}],
 	tradelinkSteam:{
-		type:String
+		type:String,
+		default:''
 	},
 	secondary_accounts:[{nickname:{type:String,required:true}}]
 

@@ -46,6 +46,29 @@ const listPessoasOn = async (req, res) => {
     //   res.status(400).send(['Erro ao listar pessoas on']);
     // });
 };
+
+const findPessoaById = async (req, res) => {
+    const id = parseInt(req.params.id);
+    Pessoa.selectCanalById(id).then((data) => {
+      res.status(200).json({
+        data:data[0]
+      });
+    }).catch((err) => {
+      res.status(400).send(['Erro ao procurar canal']);
+    });
+};
+
+const findPessoaBySession = (req, res) => {
+    if (req.user) {
+        res.status(200).json({
+          data:req.user
+        });
+    }else{
+        res.status().send({
+            message:'Erro ao procurar por usuario'
+        });
+    }
+};
   
 const registerPessoa = async (req, res) => {
     const { points, nome, nickname, timeOn, timeOff, channel_id } = req.body;
@@ -269,5 +292,7 @@ module.exports = {
     addChannel,
     setStatusPessoaCanal,
     setPointPessoaCanal,
-    registerOrUpdatePessoa
+    registerOrUpdatePessoa,
+    findPessoaById,
+    findPessoaBySession
 }

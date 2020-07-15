@@ -1,5 +1,8 @@
 
 // const Canal = require("../../models/Canais");
+const oauth = require('../../services/oauthtwitch');
+const uuid = require("uuid").v4;
+const pessoasController = require('../../controllers/pessoas/pessoasController');
 
 const getUrlTwitch = async (req, res) => {
   

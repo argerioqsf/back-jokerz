@@ -46,8 +46,15 @@ const Products = new mongoose.Schema({
 		ref:'Categories'
 	},
     id_item:{
+        type:String,
+		unique:true
+	},
+	class_id:{
         type:String
-    },
+	},
+	id_owner:{
+        type:String
+	}
 })
 
 module.exports = mongoose.model('Products', Products)

@@ -7,13 +7,24 @@ const authController = require('../controllers/auth/authController');
 var passport = require('passport');
 const oauth = require('../services/oauthtwitch');
 const uuid = require("uuid").v4;
+const Pessoa = require('../schemas/pessoa');
 
-const verifyAuth = (req, res, next)=>{
+const verifyAuth = async (req, res, next)=>{
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
   console.log('req.cookies[session]: ',req.cookies['session']);
   if (req.cookies['session']) {
-      next();
+      let session = req.cookies['session'];
+      let pessoa = await Pessoa.find({session:session});
+      if (pessoa[0]) {
+        pessoa[0]._id = pessoa[0];
+        req.user = pessoa[0];
+        next();
+      } else {
+        res.status(403).json({
+            message:"Cookie inválido"
+        });
+      }
   } else {
     res.status(403).json({
         message:"Não possui credenciais"
@@ -22,12 +33,12 @@ const verifyAuth = (req, res, next)=>{
 }
 
 //pessoas
-router.get('/pessoas', verifyAuth,pessoasController.listPessoas);
-router.post('/pessoas', pessoasController.registerPessoa);
-router.put('/pessoas/channels', pessoasController.addChannel);
-router.get('/pessoas/status', pessoasController.listPessoasOn);
-router.put('/pessoas/status', pessoasController.setStatusPessoaCanal);
-router.get('/pessoas/points/zerar', pessoasController.zerarPontosPessoas);
+// router.get('/person', verifyAuth,pessoasController.listPessoas);
+router.get('/person', verifyAuth,pessoasController.findPessoaBySession);
+router.put('/person/channels', pessoasController.addChannel);
+router.get('/person/status', pessoasController.listPessoasOn);
+router.put('/person/status', pessoasController.setStatusPessoaCanal);
+router.get('/person/points/zerar', pessoasController.zerarPontosPessoas);
 
 //canais
 router.get('/channel', canalController.listCanais);
@@ -42,19 +53,13 @@ router.get('/home',verifyAuth,(req,res)=>{
 
 //products
 router.get('/products/reload_products_cs',productsController.registerProductsCs);
-router.get('/products'
-,verifyAuth
-,productsController.listProducts);
-router.post('/products/promo'
-// ,verifyAuth
-,productsController.setPromo);
-router.get('/products/promo'
-,verifyAuth
-,productsController.listProductsPromo);
+router.get('/products',productsController.listProducts);
+router.post('/products/promo',verifyAuth,productsController.setPromo);
+router.get('/products/promo',productsController.listProductsPromo);
 
 //auth
-router.get('/auth/login',passport.authenticate("twitch"));
-router.get('/auth-url-twitch',authController.getUrlTwitch);
-router.get('/auth-from-code-twitch',authController.authFromCode);
+// router.get('/auth/login',passport.authenticate("twitch"));
+router.get('/auth/url-twitch',authController.getUrlTwitch);
+router.get('/auth/from-code-twitch',authController.authFromCode);
 
 module.exports = router;
