@@ -2,7 +2,8 @@
 // const Pessoa = require("../../models/Pessoas");
 // const PessoaCanal = require("../../models/PessoaCanal");
 const Pessoa = require('../../schemas/pessoa')
-const Channel = require('../../schemas/channel')
+const Channel = require('../../schemas/channel');
+const pessoa = require('../../schemas/pessoa');
 
 const listPessoas = async (req, res) => {
     try {
@@ -157,7 +158,7 @@ const addChannel = async (req, res) => {
         let exist_channel_in_user = await Pessoa.find({'channels.info_channel':{$in:channel_id}}).where({_id:id_user});
         let exist_channel = await Channel.findById(channel_id);
         if (exist_channel_in_user.length == 0) {
-            if (exist_channel.length > 0) {
+            if (exist_channel) {
                 let pessoa_old = await Pessoa.findById(id_user);
                 let data =[
                     ...pessoa_old.channels,
@@ -171,12 +172,12 @@ const addChannel = async (req, res) => {
                 res.status(201).json({
                     message:'canal adicionado com sucesoo',
                     pessoa:pessoa,
-                    // exist_channel:exist_channel
+                    // exist_channel:exist_channel,
+                    // exist_channel_in_user:exist_channel_in_user
                 });
             }else{
                 res.status(400).json({
-                    message:'id do canal incorreto',
-                    err:error
+                    message:'id do canal incorreto'
                 });
             }
         }else{
@@ -186,8 +187,8 @@ const addChannel = async (req, res) => {
         }
     } catch (error) {
         res.status(400).json({
-            message:'Erro adicionar o canal',
-            err:error
+            message:'Erro ao adicionar o canal',
+            err:JSON.stringify(error)
         });
     }
 };

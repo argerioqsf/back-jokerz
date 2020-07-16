@@ -15,7 +15,7 @@ const verifyAuth = async (req, res, next)=>{
   console.log('req.cookies[session]: ',req.cookies['session']);
   if (req.cookies['session']) {
       let session = req.cookies['session'];
-      let pessoa = await Pessoa.find({session:session});
+      let pessoa = await Pessoa.find({session:session}).populate('channels.info_channel');
       if (pessoa[0]) {
         pessoa[0]._id = pessoa[0];
         req.user = pessoa[0];
@@ -33,8 +33,8 @@ const verifyAuth = async (req, res, next)=>{
 }
 
 //pessoas
-// router.get('/person', verifyAuth,pessoasController.listPessoas);
-router.get('/person', verifyAuth,pessoasController.findPessoaBySession);
+router.get('/person',pessoasController.listPessoas);
+router.get('/person/session', verifyAuth,pessoasController.findPessoaBySession);
 router.put('/person/channels', pessoasController.addChannel);
 router.get('/person/status', pessoasController.listPessoasOn);
 router.put('/person/status', pessoasController.setStatusPessoaCanal);
