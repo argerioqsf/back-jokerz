@@ -4,11 +4,21 @@ const mongoose = require('../configs/database/connectMongo');
 const Channel = new mongoose.Schema({
 	name: {
 		type: String,
-		required: true
+		required: true,
+		unique:true
 	},
 	linkTwitch:{
 		type: String,
 		required: true
+	},
+	id_person:{
+		type: mongoose.Schema.Types.ObjectId,
+		ref:'Pessoa',
+		required:true
+	},
+	active:{
+		type:Boolean,
+		default:false
 	}
 })
 

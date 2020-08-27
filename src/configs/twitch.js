@@ -19,16 +19,6 @@ const opts = {
 
 const client = new tmi.client(opts);
 
-
-client.on('connected', onConnectedHandler);
-// client.on('message', onMessageHandler);
-// client.on('join', onJoinHandler);
-
-function onConnectedHandler (addr, port) {
-    console.log(`* Connected to ${addr}:${port}`);
-    // setPoints();
-}
-
 function onMessageHandler (channel, userstate, msg, self) {
 
     if (self) { return; }

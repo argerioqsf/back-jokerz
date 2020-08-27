@@ -1,11 +1,15 @@
 
 // const Canal = require("../../models/Canais");
-const Channel = require('../../schemas/channel')
+const Channel = require('../../schemas/channel');
+const botController = require('../../controllers/bot/botController');
 
 const listCanais = async (req, res) => {
   
     try {
-      let channels = await Channel.find();
+      let channels = await Channel.find().populate('id_person').populate({
+        path:'id_person',
+        populate: { path: 'permissions.ifo_permission' }
+      });
         res.status(200).json({
           data:channels
         });
@@ -35,23 +39,39 @@ const findCanaisById = async (req, res) => {
     });
 };
   
-const registerCanal = async (req, res) => {
-  
-  const { name } = req.body;
-    let data = {
-        name:name,
-    }
+const registerCanal = async (data) => {
   try {
-      let resp = await Channel.create(data);
-      res.status(201).json({
-          message:'Canal cirada com sucesso!',
-          data:resp
+      let channel_exists = await Channel.find({
+        name:data.nickname
       });
+      if (channel_exists.length > 0) {
+        console.log('canal ja existe:',channel_exists);
+        return {
+            code:200,
+            status:true,
+            message:'Canal já existe',
+            data:resp
+        };
+      } else {
+        let resp = await Channel.create({
+          name:data.nickname,
+          id_person:data.id_person,
+          linkTwitch:data.linkTwitch
+        });
+        console.log('canal cadastrado');
+        return {
+            code:201,
+            status:true,
+            message:'Canal cadastrado com sucesso!',
+            data:resp
+        };
+      }
   } catch (error) {
-      res.status(400).json({
+      return {
+          status:false,
           message:'Erro ao criar cadastro de canal',
-          err:error
-      });
+          error:error
+      };
   }
 // const { nome } = req.body;
 //     Canal.insertCanal(nome).then((data)=>{
@@ -66,8 +86,57 @@ const registerCanal = async (req, res) => {
 //     });;
 };
 
+const statusChannel = async (req, res) => {
+  let { status, id_channel } = req.body;
+  try {
+    if (status) {
+      let on_channel = await Channel.findById(id_channel);
+      if (on_channel) {
+        let status_bot = await botController.addChannel(id_channel);
+        on_channel.active = true;
+        await on_channel.save();
+        if (status_bot.status) {
+          res.status(200).json({
+            message:status_bot.message,
+            data:status_bot
+          });
+        } else {
+          res.status(500).json({
+            message:status_bot.message,
+            data:status_bot.error
+          });
+        }
+      }
+    }else{
+      let off_channel = await Channel.findById(id_channel);
+      if (off_channel) {
+        let status_bot = await botController.rmChannel(id_channel);
+        off_channel.active = false;
+        await off_channel.save();
+        if (status_bot.status) {
+          res.status(200).json({
+            message:status_bot.message,
+            data:status_bot
+          });
+        } else {
+          res.status(500).json({
+            message:status_bot.message,
+            data:status_bot.error
+          });
+        }
+      }
+    }
+  } catch (error) {
+      res.status(500).json({
+        message:'Erro ao mudar status do canal',
+        error:error
+      });
+  }
+};
+
 module.exports = {
     listCanais,
     registerCanal,
-    findCanaisById
+    findCanaisById,
+    statusChannel
 }

@@ -14,6 +14,7 @@ require('./src/index')(app);
 app.listen(app.get('port'), () => {
   console.log('Aplicação executando na porta ', app.get('port'));
   botController.setPoints();
+  botController.addChannelsInitial();
 });
 
 // ==> Rotas da API:
