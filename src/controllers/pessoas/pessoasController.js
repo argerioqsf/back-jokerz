@@ -288,23 +288,6 @@ const zerarPontosPessoas = async (req, res) => {
             err:error
         });
     }
-    // Pessoa.zerarPointPessoa().then((data) => {
-    //     PessoaCanal.zerarPointPessoaCanal().then((data) => {
-    //         res.status(200).json({
-    //             message:'pontos zerados'
-    //         });
-    //     }).catch((err) => {
-    //         res.status(200).json({
-    //             message:'erro ao zerar os pontos 1',
-    //             error:err
-    //         });
-    //     });
-    // }).catch((err) => {
-    //     res.status(200).json({
-    //         message:'erro ao zerar os pontos 2',
-    //         error:err
-    //     });
-    // });
 };
 
 const setStatusPessoaCanal = async (req,res) =>{

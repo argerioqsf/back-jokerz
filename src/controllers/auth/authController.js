@@ -67,8 +67,8 @@ const authFromCodePerson = async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({
-        message:'Erro ao autenticar usuário, fale com os administradores do sistema.',
-        error:error
+            message:'Erro ao autenticar usuário, fale com os administradores do sistema.',
+            error:error
         });
         console.log('erro auth from code: ',error);
     }
@@ -96,50 +96,50 @@ const registerAuthStreamer = async (req, res) => {
         tradelinkSteam:tradelinkSteam,
         permissions:permissions,
     }
-  try {
-      let cad_person = await pessoasController.registerPerson(data);
-      if (cad_person.status) {
-          if (cad_person.code == 201) {
-            data.id_person = cad_person.data._id;
-            let cad_channel = await canalController.registerCanal(data);
-            if (cad_channel.status) {
-                if (cad_channel.code == 201) {
-                    cad_person.data.password = undefined;
-                    res.status(cad_person.code).json({
-                        message:'Conta de Streamer criada com sucesso!',
-                        token:genereteToken({ id:cad_person.data._id }),
-                        data:cad_person.data,
-                    });
-                    // let join_bot = await botController.addChannel(cad_channel.data._id);
-                    // console.log('join_bot: ',join_bot);
-                } else {
-                    res.status(cad_person.code).json({
-                        message:'Conta não criada pois o nickname ja está cadastrado no sistema'
+    try {
+        let cad_person = await pessoasController.registerPerson(data);
+        if (cad_person.status) {
+            if (cad_person.code == 201) {
+                data.id_person = cad_person.data._id;
+                let cad_channel = await canalController.registerCanal(data);
+                if (cad_channel.status) {
+                    if (cad_channel.code == 201) {
+                        cad_person.data.password = undefined;
+                        res.status(cad_person.code).json({
+                            message:'Conta de Streamer criada com sucesso!',
+                            token:genereteToken({ id:cad_person.data._id }),
+                            data:cad_person.data,
+                        });
+                        // let join_bot = await botController.addChannel(cad_channel.data._id);
+                        // console.log('join_bot: ',join_bot);
+                    } else {
+                        res.status(cad_person.code).json({
+                            message:'Conta não criada pois o nickname ja está cadastrado no sistema'
+                        });
+                    }
+                }else{
+                    res.status(500).json({
+                        message:cad_channel.message,
+                        error:cad_channel.error
                     });
                 }
             }else{
-                res.status(500).json({
-                    message:cad_channel.message,
-                    error:cad_channel.error
+                res.status(cad_person.code).json({
+                    message:'Conta não criada pois ja existe um usuário com este nickname'
                 });
             }
-          }else{
-            res.status(cad_person.code).json({
-                message:'Conta não criada pois ja existe um usuário com este nickname'
+        }else{
+            res.status(500).json({
+                message:cad_person.message,
+                error:cad_person.error
             });
-          }
-      }else{
+        }
+    } catch (error) {
         res.status(500).json({
-            message:cad_person.message,
-            error:cad_person.error
+            message:'Erro ao cadastrar e autenticar o usuário',
+            error:error
         });
-      }
-  } catch (error) {
-      res.status(500).json({
-          message:'Erro ao cadastrar e autenticar o usuário',
-          error:error
-      });
-  }
+    }
 };
 
 const loginStreamer = async (req, res) => {

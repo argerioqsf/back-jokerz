@@ -61,7 +61,15 @@ const Pessoa = new mongoose.Schema({
 	timeoff: {
 		type: String
 	},
-	permissions:[{ifo_permission:{type: mongoose.Schema.Types.ObjectId, ref:'Permissions',required:true}}],
+	permissions:[
+		{
+			ifo_permission:{
+				type: mongoose.Schema.Types.ObjectId,
+				ref:'Permissions',
+				required:true
+			}
+		}
+	],
 	// permissions:{
 	// 	type:String,
 	// 	required:true

@@ -33,6 +33,7 @@ module.exports = (app) =>{
     // app.use(passport.initialize());
     // app.use(passport.session());
     app.use(morgan('dev'));
+    app.use('/uploads', express.static('uploads'));
     app.use(cors());
 
 
