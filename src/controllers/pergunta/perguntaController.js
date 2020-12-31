@@ -39,6 +39,25 @@ const registerPergunta = async (req, res) => {
   }
 };
 
+const atualizarPergunta = async (req, res) => {
+  const id = req.params.id;
+  try {
+    let pergunta = await Pergunta.findByIdAndUpdate(id,{
+        ...req.body
+    });
+    console.log('Pergunta atualizada');
+    res.status(201).json({
+        message:'Pergunta atualizada com sucesso!',
+        data:pergunta
+    });
+  } catch (error) {
+        res.status(400).send({
+            message:'Erro ao atualizar pergunta',
+            error:error
+        });
+  }
+};
+
 const deletePergunta = async (req, res) => {
     const id = req.params.id;
     try {
@@ -75,5 +94,6 @@ module.exports = {
     listPerguntas,
     registerPergunta,
     deletePergunta,
-    findPergunta
+    findPergunta,
+    atualizarPergunta
 }

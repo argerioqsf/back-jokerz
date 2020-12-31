@@ -24,7 +24,7 @@ const Partida = new mongoose.Schema({
     },
     tempo:{
         type: Number,
-        default: 3
+        default: 10
     }
 })
 

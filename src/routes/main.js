@@ -83,6 +83,7 @@ router.post('/adm/perguntas',authMiddleware, perguntaController.registerPergunta
 router.get('/adm/perguntas',authMiddleware, perguntaController.listPerguntas);
 router.get('/adm/perguntas/:id',authMiddleware, perguntaController.findPergunta);
 router.delete('/adm/perguntas/:id',authMiddleware, perguntaController.deletePergunta);
+router.put('/adm/perguntas/:id',authMiddleware, perguntaController.atualizarPergunta);
 
 //Niveis
 router.post('/adm/niveis',authMiddleware, nivelController.registerNivel);
@@ -102,5 +103,6 @@ router.get('/adm/partidas',authMiddleware, partidaController.listPartidas);
 router.get('/adm/partidas/atual',authMiddleware, partidaController.findPartidaAtual);
 router.get('/adm/partidas/:id',authMiddleware, partidaController.findPartida);
 router.delete('/adm/partidas/:id',authMiddleware, partidaController.deletePartida);
+router.put('/adm/partidas/:id',authMiddleware, partidaController.atualizarPartida);
 
 module.exports = router;
