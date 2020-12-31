@@ -4,7 +4,7 @@ const Premiacao = require('../../schemas/Premiacoes');
 
 const listPremiacoes = async (req, res) => {
     try {
-      let premiacoes = await Premiacao.find().populate('nivel');
+      let premiacoes = await Premiacao.find().populate('nivel').sort({indice:-1});
         res.status(200).json({
           data:premiacoes
         });

@@ -28,6 +28,10 @@ const Pergunta = new mongoose.Schema({
     resposta:{
         type: Number,
         required: true
+    },
+    ativa:{
+        type:Boolean,
+        default:true
     }
 })
 
