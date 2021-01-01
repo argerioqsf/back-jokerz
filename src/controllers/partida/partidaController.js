@@ -42,13 +42,13 @@ const atualizarPartida = async (req, res) => {
     // console.log(req.body);
     // console.log(req.params);
     let nivel = '';
-    if(req.body.quant_acertos >= 0 && req.body.quant_acertos <= 5){
+    if(req.body.quant_acertos >= 0 && req.body.quant_acertos < 5){
         nivel = await Niveis.findOne({number:1});
     }
-    if(req.body.quant_acertos > 5 && req.body.quant_acertos <= 10){
+    if(req.body.quant_acertos >= 5 && req.body.quant_acertos < 10){
         nivel = await Niveis.findOne({number:2});
     }
-    if(req.body.quant_acertos > 10 && req.body.quant_acertos <= 15){
+    if(req.body.quant_acertos >= 10 && req.body.quant_acertos <= 15){
         nivel = await Niveis.findOne({number:3});
     }
     if(!req.body.quant_acertos){
