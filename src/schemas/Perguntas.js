@@ -32,6 +32,10 @@ const Pergunta = new mongoose.Schema({
     ativa:{
         type:Boolean,
         default:true
+    },
+    tempo:{
+        type:Number,
+        default:7
     }
 })
 

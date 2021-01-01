@@ -17,14 +17,15 @@ const listPerguntas = async (req, res) => {
 };
 
 const registerPergunta = async (req, res) => {
-  const { titulo, alternativas, nivel, categoria, resposta } = req.body;
+  const { titulo, alternativas, nivel, categoria, resposta, tempo } = req.body;
   try {
     let pergunta = await Pergunta.create({
         titulo:titulo,
         alternativas:alternativas,
         nivel:nivel,
         categoria:categoria,
-        resposta:resposta
+        resposta:resposta,
+        tempo:tempo
     });
     console.log('Pergunta cadastrada');
     res.status(201).json({
