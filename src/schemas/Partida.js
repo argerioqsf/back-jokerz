@@ -18,6 +18,10 @@ const Partida = new mongoose.Schema({
         type: Boolean,
         default:false
     },
+    ajuda_3:{
+        type: Boolean,
+        default:false
+    },
     quant_acertos:{
         type: Number,
         default:0
@@ -25,7 +29,17 @@ const Partida = new mongoose.Schema({
     tempo:{
         type: Number,
         default: 10
-    }
+    },
+    ajudas:[{
+        name:{
+            type: String,
+            required: true
+        },
+        number:{
+            type: Number,
+            required: true
+        }
+    }]
 })
 
 

@@ -8,6 +8,7 @@ const perguntaController = require('../controllers/pergunta/perguntaController')
 const nivelController = require('../controllers/nivel/nivelController');
 const premiacaoController = require('../controllers/premicao/premiacaoController');
 const partidaController = require('../controllers/partida/partidaController');
+const categoriasController = require('../controllers/categorias/categoriasController');
 const authMiddleware = require('../middlewares/auth');
 
 //multer
@@ -81,6 +82,7 @@ router.get('/adm/permissions',permissionControler.listarPermissions);
 //Perguntas
 router.post('/adm/perguntas',authMiddleware, perguntaController.registerPergunta);
 router.get('/adm/perguntas',authMiddleware, perguntaController.listPerguntas);
+router.get('/adm/perguntas/status',authMiddleware, perguntaController.statusPerguntas);
 router.get('/adm/perguntas/:id',authMiddleware, perguntaController.findPergunta);
 router.delete('/adm/perguntas/:id',authMiddleware, perguntaController.deletePergunta);
 router.put('/adm/perguntas/:id',authMiddleware, perguntaController.atualizarPergunta);
@@ -104,5 +106,11 @@ router.get('/adm/partidas/atual',authMiddleware, partidaController.findPartidaAt
 router.get('/adm/partidas/:id',authMiddleware, partidaController.findPartida);
 router.delete('/adm/partidas/:id',authMiddleware, partidaController.deletePartida);
 router.put('/adm/partidas/:id',authMiddleware, partidaController.atualizarPartida);
+
+//Categorias
+router.post('/adm/categorias', authMiddleware,categoriasController.registerCategoria);
+router.get('/adm/categorias',authMiddleware, categoriasController.listCategorias);
+router.get('/adm/categorias/:id',authMiddleware, categoriasController.findCategoria);
+router.delete('/adm/categorias/:id',authMiddleware, categoriasController.deleteCategoria);
 
 module.exports = router;

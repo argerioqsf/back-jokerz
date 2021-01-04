@@ -1,10 +1,11 @@
 
 // const Canal = require("../../models/Canais");
 const Pergunta = require('../../schemas/Perguntas');
+const Nivel = require('../../schemas/Niveis');
 
 const listPerguntas = async (req, res) => {
     try {
-      let perguntas = await Pergunta.find().populate('nivel');
+      let perguntas = await Pergunta.find().populate('nivel').populate('categoria');
         res.status(200).json({
           data:perguntas
         });
@@ -91,10 +92,38 @@ const findPergunta = async (req, res) => {
     }
 };
 
+const statusPerguntas = async (req, res) => {
+    try {
+        let nivel_1 = await Nivel.findOne({number: 1});
+        let nivel_2 = await Nivel.findOne({number: 2});
+        let nivel_3 = await Nivel.findOne({number: 3});
+        let perguntas_1 = await Pergunta.find({nivel:nivel_1._id, ativa:true});
+        let perguntas_2 = await Pergunta.find({nivel:nivel_2._id, ativa:true});
+        let perguntas_3 = await Pergunta.find({nivel:nivel_3._id, ativa:true});
+
+        // let perguntasNivel1 = await Pergunta.find({"nivel.number":2}).populate('nivel');
+        // let perguntasNivel2 = await Pergunta.find({'nivel.number':{$in:2}});
+        // let perguntasNivel3 = await Pergunta.find({'nivel.number':{$in:3}});
+        res.status(200).json({
+          data:{
+              quant_perguntas_1:perguntas_1.length,
+              quant_perguntas_2:perguntas_2.length,
+              quant_perguntas_3:perguntas_3.length
+          }
+        });
+    } catch (error) {
+        res.status(400).send({
+            message:'Erro ao procurar status das perguntas',
+            error:error
+        });
+    }
+};
+
 module.exports = {
     listPerguntas,
     registerPergunta,
     deletePergunta,
     findPergunta,
-    atualizarPergunta
+    atualizarPergunta,
+    statusPerguntas
 }

@@ -22,8 +22,8 @@ const Pergunta = new mongoose.Schema({
         required: true
     },
     categoria:{
-        type: String,
-        default: 'Geral'
+		type: mongoose.Schema.Types.ObjectId,
+        ref:'Categories'
     },
     resposta:{
         type: Number,
