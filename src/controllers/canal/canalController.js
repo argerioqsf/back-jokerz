@@ -1,7 +1,7 @@
 
 // const Canal = require("../../models/Canais");
 const Channel = require('../../schemas/channel');
-const botController = require('../../controllers/bot/botController');
+// const botController = require('../../controllers/bot/botController');
 
 const listCanais = async (req, res) => {
   
@@ -92,38 +92,56 @@ const statusChannel = async (req, res) => {
     if (status) {
       let on_channel = await Channel.findById(id_channel);
       if (on_channel) {
-        let status_bot = await botController.addChannel(id_channel);
+        // let status_bot = await botController.addChannel(id_channel);
         on_channel.active = true;
         await on_channel.save();
-        if (status_bot.status) {
-          res.status(200).json({
-            message:status_bot.message,
-            data:status_bot
-          });
-        } else {
-          res.status(500).json({
-            message:status_bot.message,
-            data:status_bot.error
-          });
-        }
+        res.status(200).json({
+          message:"Status do canal "+on_channel.name+" atualizado para "+status,
+          data:on_channel
+        });
+        // if (status_bot.status) {
+        //   res.status(200).json({
+        //     message:status_bot.message,
+        //     data:status_bot
+        //   });
+        // } else {
+        //   res.status(500).json({
+        //     message:status_bot.message,
+        //     data:status_bot.error
+        //   });
+        // }
+      }else{
+        res.status(200).json({
+          message:"Erro ao atualizar status do canal "+on_channel.name+" para "+status,
+          error:"Canal não encontrado"
+        });
       }
     }else{
       let off_channel = await Channel.findById(id_channel);
       if (off_channel) {
-        let status_bot = await botController.rmChannel(id_channel);
+        // let status_bot = await botController.rmChannel(id_channel);
         off_channel.active = false;
         await off_channel.save();
-        if (status_bot.status) {
-          res.status(200).json({
-            message:status_bot.message,
-            data:status_bot
-          });
-        } else {
-          res.status(500).json({
-            message:status_bot.message,
-            data:status_bot.error
-          });
-        }
+        res.status(200).json({
+          message:"Status do canal "+on_channel.name+" atualizado para "+status,
+          data:on_channel
+        });
+        // if (status_bot.status) {
+        //   res.status(200).json({
+        //     message:status_bot.message,
+        //     data:status_bot
+        //   });
+        // } else {
+        //   res.status(500).json({
+        //     message:status_bot.message,
+        //     data:status_bot.error
+        //   });
+        // }
+      }else{
+        res.status(200).json({
+          message:"Erro ao atualizar status do canal "+on_channel.name+" para "+status,
+          error:"Canal não encontrado"
+        });
       }
     }
   } catch (error) {

@@ -5,6 +5,10 @@ const Permissions = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true
+    },
+	indice: {
+		type: Number,
+		required: true
     }
 })
 

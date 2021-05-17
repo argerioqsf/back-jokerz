@@ -1,9 +1,9 @@
 const Permissions = require('../../schemas/Permissions')
 
 const registerPermission = async (req, res) => {
-    const { name } = req.body;
+    const { name, indice } = req.body;
     try {
-      let permission = await Permissions.create({name:name});
+      let permission = await Permissions.create({name:name, indice:indice});
         res.status(200).json({
             message:'Permissão criada comsucesso!',
             data:permission

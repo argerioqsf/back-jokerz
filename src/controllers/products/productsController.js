@@ -9,10 +9,12 @@ const listProducts = async (req, res) => {
         .skip((page - 1) * limit)
         .exec();
         const count = await Products.countDocuments();
+        let totalPages = Math.ceil(count / limit)
         res.status(200).json({
           data:products,
-          totalPages: Math.ceil(count / limit),
-          currentPage: page
+          totalPages: totalPages,
+          currentPage: page,
+          total_itens: limit * totalPages
         });
     } catch (error) {
           res.status(400).send({
@@ -66,6 +68,7 @@ const registerProductsCs = async (req, res) => {
         // let data = itens_cs.data.rgDescriptions;
         let data = await products_steam.organizarArrayItens(itens_cs.data);
         // console.log('data: ',data);
+        // await Products.deleteMany({});
         if (data) {
             Object.values(data).map(async(item)=>{
                 let class_id = item.classid+'_'+item.instanceid;
@@ -100,9 +103,10 @@ const registerProductsCs = async (req, res) => {
                     prod.type=item.type;
                     prod.save();
                 }else{
-                    console.log('item '+product.name+' criado: ');
                     // console.log('cadastrando product: ',product.name);
+                    console.log('item '+product.id_item+' criado: ');
                     Products.create(product);
+                    console.log('item '+product.name+' criado: ');
                 }
             });
             

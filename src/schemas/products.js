@@ -55,6 +55,18 @@ const Products = new mongoose.Schema({
 	id_owner:{
         type:String
 	}
+	// ,stickers:[
+	// 	{
+	// 		name:{
+	// 			type: mongoose.Schema.Types.ObjectId,
+	// 			ref:'Permissions',
+	// 			required:true
+	// 		}
+	// 	}
+	// ],
+    // status:{
+    //     type:String
+    // }
 })
 
 module.exports = mongoose.model('Products', Products)
