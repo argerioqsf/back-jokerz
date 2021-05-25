@@ -161,7 +161,7 @@ const loginStreamer = async (req, res) => {
             }else{
                 person.password = undefined;
 
-                res.status(200).send({
+                return res.status(200).send({
                     message:'usuário autenticado com sucesso',
                     token:genereteToken({ id:person._id }),
                     data:person
@@ -169,7 +169,7 @@ const loginStreamer = async (req, res) => {
             }
         }
     } catch (error) {
-        res.status(400).json({
+        return res.status(400).json({
             message:'Erro ao autenticar usuário',
             err:error
         });

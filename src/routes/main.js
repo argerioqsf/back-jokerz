@@ -62,16 +62,20 @@ router.get('/home',authMiddleware,(req,res)=>{
 });
 
 //products
-router.get('/products/reload_products_cs',productsController.registerProductsCs);
-router.get('/products',productsController.listProducts);
+router.get('/products/reload_products_cs',authMiddleware,productsController.registerProductsCs);
+router.post('/products',authMiddleware, upload.any(),productsController.registerProduct);
+router.put('/products/:id',authMiddleware, upload.any(), productsController.editProduct);
+router.put('/products/:id/status',authMiddleware, productsController.changeStatusProduct);
+router.get('/products', productsController.listProducts);
+router.get('/products/:id', productsController.findProductById);
 router.post('/products/promo',authMiddleware,productsController.setPromo);
 router.get('/products/promo',productsController.listProductsPromo);
+router.delete('/products/sticker', authMiddleware, productsController.deleteStickerProduct);
 
 //auth
 // router.get('/auth/login',passport.authenticate("twitch"));
 router.get('/auth/url-twitch',authController.getUrlTwitch);
 router.get('/auth/twitch_person',authController.authFromCodePerson);
-
 router.post('/auth/login_streamer',authController.loginStreamer);
 router.post('/auth/cadastro_streamer',authController.registerAuthStreamer);
 

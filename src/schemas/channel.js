@@ -19,6 +19,10 @@ const Channel = new mongoose.Schema({
 	active:{
 		type:Boolean,
 		default:false
+	},
+	max_secondary_account:{
+		type:Number,
+		default:1
 	}
 })
 
