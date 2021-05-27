@@ -71,6 +71,7 @@ router.get('/products/:id', productsController.findProductById);
 router.post('/products/promo',authMiddleware,productsController.setPromo);
 router.get('/products/promo',productsController.listProductsPromo);
 router.delete('/products/sticker', authMiddleware, productsController.deleteStickerProduct);
+router.delete('/products/:id', authMiddleware, productsController.deleteProduct);
 
 //auth
 // router.get('/auth/login',passport.authenticate("twitch"));

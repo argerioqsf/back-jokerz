@@ -246,8 +246,7 @@ const changeStatusProduct = async (req, res) => {
             let data = req.body;
             let status = data.status;
             console.log("data: ",data);
-            console.log("req: ",req);
-            if (status && (status.includes("cadastrado") || status.includes("emEstoque") || status.includes("esgotado"))) {
+            if (status && (status === "cadastrado" || status === "emEstoque" || status === "esgotado")) {
                 product.status = status;
                 let product_new = await product.save();
                 res.status(201).json({
@@ -295,6 +294,7 @@ const registerProductsCs = async (req, res) => {
                             class_id:item.classid,
                             assetid:item.assetid
                         });
+
                         let product = {
                             id_owner:item.id_owner,
                             class_id:item.classid,
@@ -319,6 +319,20 @@ const registerProductsCs = async (req, res) => {
                             nametag:item.nametag
                         }
                         if (prod) {
+                            for (let i = 0; i < prod.stickersinfo.length; i++) {
+                                if (prod.stickersinfo[i].path_img && prod.stickersinfo[i].path_img.length > 0) {
+                                    let dir = path.resolve(prod.stickersinfo[i].path_img);
+                                    console.log("dir 5: ",dir);
+                                    await fs.promises.unlink(dir);
+                                    prod.stickersinfo[i].path_img = null;
+                                }
+                            }
+                            if (prod.imagepath && prod.imagepath.length > 0) {
+                                let dir = path.resolve(prod.imagepath);
+                                console.log("dir 6: ",dir);
+                                await fs.promises.unlink(dir);
+                                prod.imagepath = null;
+                            }
                             console.log(index + ' - item '+prod.name+' atualizado: ');
                             prod.id_owner=item.id_owner;
                             prod.class_id=item.classid;
@@ -397,6 +411,41 @@ const setPromo = async (req, res) => {
     }
 };
 
+const deleteProduct = async (req,res) => {
+    const id = req.params.id;
+    try {
+        let product = await Products.findById(id);
+        if (product) {
+            if (product.imagepath && product.imagepath.length > 0) {
+                let dir = path.resolve(product.imagepath);
+                console.log("dir 7: ",dir);
+                await fs.promises.unlink(dir);
+            }
+            for (let i = 0; i < product.stickersinfo.length; i++) {
+                if (product.stickersinfo[i].path_img && product.stickersinfo[i].path_img.length > 0) {
+                    let dir = path.resolve(product.stickersinfo[i].path_img);
+                    console.log("dir 5: ",dir);
+                    await fs.promises.unlink(dir);
+                }
+            }
+            let deletado = await Products.findByIdAndDelete(id);
+            res.status(200).json({
+              message: 'Produto deletado',
+              data: deletado
+            });
+        }else{
+            res.status(400).send({
+                message:'Produto não existe',
+            });
+        }
+    } catch (error) {
+        res.status(500).send({
+            message:'Erro ao deletar produto',
+            error:error
+        });
+    }
+}
+
 const deleteStickerProduct = async (req, res) => {
     const { product_id, slot } = req.body;
     console.log('body: ',req.body);
@@ -462,5 +511,6 @@ module.exports = {
     setPromo,
     editProduct,
     deleteStickerProduct,
-    changeStatusProduct
+    changeStatusProduct,
+    deleteProduct
 }

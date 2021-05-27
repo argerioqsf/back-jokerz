@@ -39,6 +39,7 @@ const authFromCodePerson = async (req, res) => {
         const resp = await oauth.getTokenFromCode(code);
         let data = resp.resp.data;
         console.log('resp.status: ',resp.status);
+        // console.log('data: ',data);
         
         if (resp.status) {
             let decodedResponse = await oauth.parseJWTToken(resp.resp.data.id_token);
@@ -46,7 +47,9 @@ const authFromCodePerson = async (req, res) => {
             
             let createOrUpdate = await pessoasController.registerOrUpdatePessoa({
                 idTwitch:decodedResponse.resp.sub,
-                nickname:decodedResponse.resp.preferred_username
+                nickname:decodedResponse.resp.preferred_username,
+                accessTokenTwitch:data.access_token,
+                refreshTokenTwitch:data.refresh_token
             });
             if (createOrUpdate) {
                 res.status(200).json({

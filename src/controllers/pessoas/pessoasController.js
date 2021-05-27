@@ -143,7 +143,18 @@ const registerPerson = async (data) => {
 };
  
 const registerOrUpdatePessoa = async (data) => {
-    const { points = 0, nickname, timeOn = '', timeOff = '', idTwitch, session, permissions } = data;
+    const {
+        points = 0,
+        nickname,
+        timeOn = '',
+        timeOff = '',
+        idTwitch,
+        session,
+        permissions,
+        accessTokenTwitch = '',
+        refreshTokenTwitch = ''
+    } = data;
+
     let nick = nickname.toLowerCase();
     let info = {
         points:points,
@@ -153,7 +164,9 @@ const registerOrUpdatePessoa = async (data) => {
         timeoff:timeOff,
         idTwitch:idTwitch,
         session:session,
-        permissions:permissions
+        permissions:permissions,
+        accessTokenTwitch:accessTokenTwitch,
+        refreshTokenTwitch:refreshTokenTwitch
     }
     
     try {
@@ -163,20 +176,12 @@ const registerOrUpdatePessoa = async (data) => {
             pessoa_idTwitch.nickname=nick;
             pessoa_idTwitch.idTwitch=idTwitch;
             pessoa_idTwitch.session=session;
+            pessoa_idTwitch.accessTokenTwitch=accessTokenTwitch;
+            pessoa_idTwitch.refreshTokenTwitch=refreshTokenTwitch;
             return pessoa_idTwitch.save();
-            // console.log('achou user: ',pessoa_idTwitch);
         } else {
-            // let pessoa_nickname = await Pessoa.findOne({nickname:nick});
-            // if (pessoa_nickname) {
-            //     console.log('pessoa '+pessoa_nickname.name+' atualizada');
-            //     pessoa_nickname.nickname=nick;
-            //     pessoa_nickname.idTwitch=idTwitch;
-            //     pessoa_nickname.session=session;
-            //     return pessoa_nickname.save();
-            // }else{
-                console.log('não achou user');
-                return Pessoa.create(info);
-            // }
+            console.log('não achou user');
+            return Pessoa.create(info);
         }
     } catch (error) {
         console.log('error achou user');
