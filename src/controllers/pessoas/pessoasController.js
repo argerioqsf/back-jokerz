@@ -3,11 +3,11 @@
 // const PessoaCanal = require("../../models/PessoaCanal");
 const Pessoa = require('../../schemas/pessoa')
 const Channel = require('../../schemas/channel');
-const pessoa = require('../../schemas/pessoa');
+const AccountsLink = require('../../schemas/AccountsLink');
 
 const listPessoas = async (req, res) => {
     try {
-        let pessoas = await Pessoa.find().populate('channels.info_channel').populate('permissions.ifo_permission');
+        let pessoas = await Pessoa.find().populate('channels.info_channel').populate('permissions.ifo_permission').populate('accountsLinks.info_accountLink');
           res.status(200).json({
             data:pessoas
           });
@@ -79,7 +79,8 @@ const findPessoaById = async (req, res) => {
 const findPerson = async (req, res) => {
     console.log('req.userId: ',req.userId);
     try {
-        let person = await Pessoa.findById(req.userId).populate('primary_account_ref').populate('secondary_accounts').populate('channels.info_channel');
+        let person = await Pessoa.findById(req.userId).populate('primary_account_ref').populate('secondary_accounts')
+        .populate('channels.info_channel').populate('accountsLinks.info_accountLink');
         res.status(200).json({
           data:person
         });
@@ -352,6 +353,37 @@ const setPointPessoa = async (id_user, points) => {
     }
 };
 
+const setAccountLink = async (req,res)=>{
+    const { id_user, id_accountLink } = req.body;
+    try {
+        let accountLink = {
+            info_accountLink:id_accountLink
+        }
+        let pessoa = await Pessoa.findById(id_user);
+        let accountLink_ = await AccountsLink.findById(id_accountLink);
+        if (pessoa && accountLink_) {
+            pessoa.accountsLinks = [
+                ...pessoa.accountsLinks,
+                accountLink
+            ];
+            let pessoa_new = await pessoa.save();
+            res.status(200).json({
+                message:'Conta vinculada com sucesso',
+                data:pessoa_new
+            });
+        }else{
+            res.status(400).json({
+                message:'Erro setar conta vinculada, usuário ou conta não encontrado(a)'
+            });
+        }
+    } catch (error) {
+        res.status(400).json({
+            message:'Erro ao setar conta vinculada',
+            err:error
+        });
+    }
+}
+
 module.exports = {
     listPessoas,
     registerPerson,
@@ -365,5 +397,6 @@ module.exports = {
     findPessoaById,
     findPerson,
     setTypePerson,
-    listPersonForType
+    listPersonForType,
+    setAccountLink
 }

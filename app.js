@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const PubsubTwitch = require('./src/services/pubsubTwitch');
 // const botController = require('./src/controllers/bot/botController');
 
 const app = express();
@@ -13,6 +14,7 @@ require('./src/index')(app);
 
 app.listen(app.get('port'), () => {
   console.log('Aplicação executando na porta ', app.get('port'));
+  // PubsubTwitch.connect();
   // botController.setPoints();
   // botController.addChannelsInitial();
 });

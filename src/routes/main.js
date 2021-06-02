@@ -9,6 +9,8 @@ const nivelController = require('../controllers/nivel/nivelController');
 const premiacaoController = require('../controllers/premicao/premiacaoController');
 const partidaController = require('../controllers/partida/partidaController');
 const categoriasController = require('../controllers/categorias/categoriasController');
+const pointsController = require('../controllers/points/pointsController');
+const accountsLinkController = require('../controllers/accountsLink/accountsLinkController');
 const authMiddleware = require('../middlewares/auth');
 
 //multer
@@ -48,6 +50,7 @@ router.post('/person/channels', pessoasController.addChannel);
 router.get('/person/status', pessoasController.listPessoasOn);
 router.put('/person/status', authMiddleware, pessoasController.setStatusPessoaCanal);
 router.get('/person/points/zerar', pessoasController.zerarPontosPessoas);
+router.put('/person/acconutLink',authMiddleware, pessoasController.setAccountLink);
 
 //canais
 router.get('/channel', authMiddleware,canalController.listCanais);
@@ -76,6 +79,7 @@ router.delete('/products/:id', authMiddleware, productsController.deleteProduct)
 //auth
 // router.get('/auth/login',passport.authenticate("twitch"));
 router.get('/auth/url-twitch',authController.getUrlTwitch);
+router.get('/auth/url-twitch-linkedAccount',authController.getUrlTwitchLinkedAccount);
 router.get('/auth/twitch_person',authController.authFromCodePerson);
 router.post('/auth/login_streamer',authController.loginStreamer);
 router.post('/auth/cadastro_streamer',authController.registerAuthStreamer);
@@ -117,5 +121,14 @@ router.post('/adm/categorias', authMiddleware,categoriasController.registerCateg
 router.get('/adm/categorias',authMiddleware, categoriasController.listCategorias);
 router.get('/adm/categorias/:id',authMiddleware, categoriasController.findCategoria);
 router.delete('/adm/categorias/:id',authMiddleware, categoriasController.deleteCategoria);
+
+//PUB SUB Twitch
+router.get('/twitch/SyncPoints',authMiddleware, pointsController.activeSyncPointsTwitch);
+
+//AcconutsLink
+router.post('/acconutLink', authMiddleware, accountsLinkController.registerAccountLink);
+router.get('/acconutLink', accountsLinkController.listAccountsLink);
+
+
 
 module.exports = router;

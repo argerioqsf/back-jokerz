@@ -33,6 +33,17 @@ const Pessoa = new mongoose.Schema({
 		type:Boolean,
 		default:false
 	},
+	accountsLinks:[{
+		info_accountLink:{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'AccountsLink',
+			required:true
+		},
+		active:{
+			type:Boolean,
+			default:false
+		}
+	}],
 	channels:[{
 		info_channel:{
 			type: mongoose.Schema.Types.ObjectId, ref: 'Channel',

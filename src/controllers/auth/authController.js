@@ -16,12 +16,33 @@ const genereteToken = (params = {})=>{
 }
 
 const getUrlTwitch = async (req, res) => {
-  
+    let { state } = req.query;
     let url = `https://id.twitch.tv/oauth2/authorize`;
     url += `?response_type=code`;
     url += `&client_id=cxzb1067dgz0mtca08o9s9k9ny9aqk`;
     url += `&redirect_uri=http://localhost:3000/callback_oauth`;
     url += `&scope=user_read+openid`;
+    if (state) {
+        url += `&state=${state}`;
+    }
+    url += `&claims={"id_token":{"preferred_username":null}}`;
+  
+    res.status(200).json({
+      message:'url de login gerada com sucesso',
+      data:{url:url},
+    });
+};
+
+const getUrlTwitchLinkedAccount = async (req, res) => {
+    let { state } = req.query;
+    let url = `https://id.twitch.tv/oauth2/authorize`;
+    url += `?response_type=code`;
+    url += `&client_id=cxzb1067dgz0mtca08o9s9k9ny9aqk`;
+    url += `&redirect_uri=http://localhost:3000/callback_oauth`;
+    url += `&scope=channel:manage:redemptions channel:read:redemptions`;
+    if (state) {
+        url += `&state=${state}`;
+    }
     url += `&claims={"id_token":{"preferred_username":null}}`;
   
     res.status(200).json({
@@ -31,8 +52,9 @@ const getUrlTwitch = async (req, res) => {
 };
 
 const authFromCodePerson = async (req, res) => {
-    const { code } = req.query;
+    const { code, id_user = null } = req.query;
     console.log('code: ',code);
+    console.log('id_user: ',id_user);
     res.header('Access-Control-Allow-Credentials', true)
     res.header('Access-Control-Allow-Origin', 'http://localhost:3000')
     try {
@@ -44,36 +66,83 @@ const authFromCodePerson = async (req, res) => {
         if (resp.status) {
             let decodedResponse = await oauth.parseJWTToken(resp.resp.data.id_token);
             console.log('decodedResponse: ',decodedResponse);
-            
-            let createOrUpdate = await pessoasController.registerOrUpdatePessoa({
-                idTwitch:decodedResponse.resp.sub,
-                nickname:decodedResponse.resp.preferred_username,
-                accessTokenTwitch:data.access_token,
-                refreshTokenTwitch:data.refresh_token
-            });
-            if (createOrUpdate) {
-                res.status(200).json({
-                    message:'Token gerado atraves do code com sucesso!',
-                    data:decodedResponse.resp,
-                    token:genereteToken({ id:createOrUpdate._id })
-                });
+            let pessoa = null;
+            if (id_user) {
+                pessoa = await Pessoa.findById(id_user).populate('accountsLinks.info_accountLink');
             }else{
-                res.status(500).json({
-                    message:'Erro cadastrar usuario.'
+                pessoa = await Pessoa.find({idTwitch:decodedResponse.resp.sub}).populate('accountsLinks.info_accountLink');
+                pessoa = pessoa.length > 0?pessoa[0]:null;
+            }
+            console.log('pessoa: ',pessoa);
+            if (pessoa) {
+                if (pessoa.nickname != decodedResponse.resp.preferred_username) {
+                    return res.status(500).json({
+                        message:'O usuário da Twitch logado no seu navegador não corresponde ao que você quer vincular, faça login na conta conta da twitch correta.',
+                        error:{id_user:pessoa._id}
+                    });
+                }else{
+                    if (pessoa.streamer && pessoa.accountsLinks) {
+                        for (let i = 0; i < pessoa.accountsLinks.length; i++) {
+                            if (pessoa.accountsLinks[i].info_accountLink.name == 'Twitch') {
+                                pessoa.accountsLinks[i].active = true;
+                            }
+                        }
+                    }
+                    pessoa.idTwitch = decodedResponse.resp.sub;
+                    pessoa.nickname = decodedResponse.resp.preferred_username;
+                    pessoa.accessTokenTwitch = data.access_token;
+                    pessoa.refreshTokenTwitch = data.refresh_token;
+                    let save = await pessoa.save();
+                    if (save) {
+                        return res.status(200).json({
+                            message:'Token gerado atraves do code com sucesso, conta vinculada!',
+                            data:{
+                                ...decodedResponse.resp,
+                                user_id:pessoa._id
+                            },
+                            token:genereteToken({ id:pessoa._id }),
+                        });
+                    }else{
+                        return res.status(500).json({
+                            message:'Erro ao vincular Twitch a sua conta.'
+                        });
+                    }
+                }
+            }else{
+                let createOrUpdate = await pessoasController.registerPerson({
+                    idTwitch:decodedResponse.resp.sub,
+                    nickname:decodedResponse.resp.preferred_username,
+                    name:decodedResponse.resp.preferred_username,
+                    accessTokenTwitch:data.access_token,
+                    refreshTokenTwitch:data.refresh_token
                 });
+                if (createOrUpdate.status) {
+                    return res.status(200).json({
+                        message:'Token gerado atraves do code com sucesso!',
+                        data:{
+                            ...decodedResponse.resp,
+                            user_id:createOrUpdate._id
+                        },
+                        token:genereteToken({ id:createOrUpdate.data._id }),
+                    });
+                }else{
+                    return res.status(500).json({
+                        message:'Erro cadastrar usuario.'
+                    });
+                }
             }
         }else{
-            res.status(500).json({
+            return res.status(500).json({
                 message:'Erro ao autenticar usuário.',
                 error:resp.error
             });
         }
     } catch (error) {
-        res.status(500).json({
+        console.log('erro auth from code: ',error);
+        return res.status(500).json({
             message:'Erro ao autenticar usuário, fale com os administradores do sistema.',
             error:error
         });
-        console.log('erro auth from code: ',error);
     }
 };
   
@@ -194,5 +263,6 @@ module.exports = {
     getUrlTwitch,
     authFromCodePerson,
     loginStreamer,
-    registerAuthStreamer
+    registerAuthStreamer,
+    getUrlTwitchLinkedAccount
 }

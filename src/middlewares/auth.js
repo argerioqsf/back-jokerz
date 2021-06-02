@@ -34,6 +34,7 @@ module.exports = (req, res, next)=>{
             message:'Falha na autenticação, token incorreto',
             error:{}
         });
+        console.log("decoded: ",decoded);
 
         req.userId = decoded.id;
         return next();
