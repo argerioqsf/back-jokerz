@@ -6,10 +6,10 @@ const Channel = require('../../schemas/channel');
 const listCanais = async (req, res) => {
   
     try {
-      let channels = await Channel.find().populate('id_person').populate({
-        path:'id_person',
-        populate: { path: 'permissions.ifo_permission' }
-      });
+        let channels = await Channel.find().populate('id_person').populate({
+          path:'id_person',
+          populate: { path: 'permissions.ifo_permission' }
+        });
         res.status(200).json({
           data:channels
         });
@@ -19,13 +19,6 @@ const listCanais = async (req, res) => {
               error:error
           });
     }
-    // Canal.selectCanais().then((data) => {
-    //   res.status(200).json({
-    //     canais:data
-    //   });
-    // }).catch((err) => {
-    //   res.status(400).send(['Erro ao listar canais']);
-    // });
 };
 
 const findCanaisById = async (req, res) => {
@@ -50,7 +43,7 @@ const registerCanal = async (data) => {
             code:200,
             status:true,
             message:'Canal já existe',
-            data:resp
+            data:{}
         };
       } else {
         let resp = await Channel.create({

@@ -1,7 +1,8 @@
 
 // const Pessoa = require("../../models/Pessoas");
 // const PessoaCanal = require("../../models/PessoaCanal");
-const Pessoa = require('../../schemas/pessoa')
+const PubSubTwitch = require('../../services/pubsubTwitch');
+const Pessoa = require('../../schemas/pessoa');
 const Channel = require('../../schemas/channel');
 const AccountsLink = require('../../schemas/AccountsLink');
 
@@ -79,7 +80,7 @@ const findPessoaById = async (req, res) => {
 const findPerson = async (req, res) => {
     console.log('req.userId: ',req.userId);
     try {
-        let person = await Pessoa.findById(req.userId).populate('primary_account_ref').populate('secondary_accounts')
+        let person = await Pessoa.findById(req.userId).populate('primary_account_ref').populate('secondary_accounts').populate('permissions.ifo_permission')
         .populate('channels.info_channel').populate('accountsLinks.info_accountLink');
         res.status(200).json({
           data:person
@@ -93,54 +94,36 @@ const findPerson = async (req, res) => {
 };
   
 const registerPerson = async (data) => {
-    
-  try {
-    let person_exists = await Pessoa.find({nickname:data.nickname.toLowerCase()});
-    if (person_exists.length > 0) {
-          console.log('pessoa ja existe');
-          return {
-              status:true,
-              message:'Conta ja criada',
-              data:{},
-              code:200
-          };
-    }else{
-        let person = await Pessoa.create(data);
-        console.log('pessoa criada');
-        return {
-            status:true,
-            message:'Cadastro criado com sucesso!',
-            data:person,
-            code:201
-        };
-    }
-} catch (error) {
-    console.log('erro cadastro user: ',error);
-    return {
-        status:false,
-        message:'Erro ao criar cadastro do usuário',
-        error:error
-    };
-}
-
-
-    
-    // Pessoa.insertPessoas([
-    //     points,
-    //     userName,
-    //     timeOn,
-    //     timeOff
-    // ]).then((data)=>{
-    //     res.status(200).json({
-    //         pessoas:data
-    //     });
-    // }).catch((err) => {
-    //     res.status(400).send({
-    //         message:'Erro ao listar pessoas:',
-    //         error:err
-    //     });
-    // });;
-
+    return new Promise(async(resolve, reject)=>{
+        try {
+          let person_exists = await Pessoa.find({nickname:data.nickname.toLowerCase()});
+          if (person_exists.length > 0) {
+                console.log('pessoa ja existe');
+                resolve({
+                    status:true,
+                    message:'Conta ja criada',
+                    data:{},
+                    code:200
+                })
+          }else{
+              let person = await Pessoa.create(data);
+              console.log('pessoa criada');
+              resolve({
+                  status:true,
+                  message:'Cadastro criado com sucesso!',
+                  data:person,
+                  code:201
+              })
+          }
+      } catch (error) {
+          console.log('erro cadastro user: ',error);
+          resolve({
+              status:false,
+              message:'Erro ao criar cadastro do usuário',
+              error:error
+          })
+      }
+    });
 };
  
 const registerOrUpdatePessoa = async (data) => {
@@ -323,7 +306,7 @@ const setStatusPessoaCanal = async (req,res) =>{
     }
 }
 
-const setPointPessoaCanal = async (id_user, channel_id) => {
+const setPointPessoaCanal = async (id_user, channel_id, points) => {
     let data = {id_user, channel_id};
     // console.log('info add points canal: ',data);
     try {
@@ -384,6 +367,48 @@ const setAccountLink = async (req,res)=>{
     }
 }
 
+const changePointsSyncTwitch = async (id_user,status)=>{
+    return new Promise(async (resolve,reject)=>{
+        try {
+            let pessoa = await Pessoa.findById(id_user);
+            if (pessoa) {
+                pessoa.pointsSyncTwitch = status;
+                let pessoa_new = await pessoa.save();
+                resolve({
+                    message:'Status de sincronia dos pontos com a twitch trocado',
+                    data:pessoa_new
+                });
+            }else{
+                resolve(false);
+            }
+        } catch (error) {
+            resolve(false);
+        }
+    });
+}
+
+const setPersonSyncPointsInitial = async ()=>{
+    return new Promise(async (resolve,reject)=>{
+        try {
+            let pessoas = await Pessoa.find({pointsSyncTwitch:true});
+            if (pessoas && pessoas.length > 0) {
+                for (let i = 0; i < pessoas.length; i++) {
+                    let topic = `channel-points-channel-v1.${pessoas[0].idTwitch}`;
+                    console.log("foi 3:",topic);
+                    console.log("foi 4:",pessoas[0].accessTokenTwitch);
+                    console.log("foi 5:",pessoas[0]._id);
+                    await PubSubTwitch.listen(topic,pessoas[0].accessTokenTwitch,pessoas[0]._id);
+                }
+                resolve(true);
+            }else{
+                resolve(false);
+            }
+        } catch (error) {
+            resolve(false);
+        }
+    });
+}
+
 module.exports = {
     listPessoas,
     registerPerson,
@@ -398,5 +423,7 @@ module.exports = {
     findPerson,
     setTypePerson,
     listPersonForType,
-    setAccountLink
+    setAccountLink,
+    changePointsSyncTwitch,
+    setPersonSyncPointsInitial
 }

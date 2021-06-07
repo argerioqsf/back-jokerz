@@ -509,37 +509,6 @@ async function setPoints (){
     } catch (error) {
         console.log('Erro ao iniciar contagem de pontuação 1',error);
     }
-    // Pessoa.selectPessoasOn().then(async (data)=>{
-    //   let UsersON = data.length;
-    //   let usersOnChat = data;
-    //   console.log('PONTOS ADICIONADOS PARA '+UsersON+' USUARIOS', 111111);
-    //   // console.log('usuarios on: ',usersOnChat);
-    //   for (let i = 0; i < usersOnChat.length; i++) {
-    //     let total = 0;
-    //     for (let j = 0; j < usersOnChat[i].canais.length; j++) {
-    //       console.log('canal on: ',usersOnChat[i].canais[j]);
-    //       let points = usersOnChat[i].canais[j].points_canal + 3;
-    //       total = total + points;
-    //       try {
-    //         await pessoaCanalController.setPointPessoaCanal(points,usersOnChat[i].canais[j].id_pessoa_canal);
-    //       } catch (error) {
-    //         console.log('Erro ao adicionar pontucao total pessoa_canal id => '+usersOnChat[i].canais[j].id_pessoa_canal+', error =>',error);
-    //       }
-    //       if (j == usersOnChat[i].canais.length-1) {
-    //         try {
-    //           await pessoasController.setPointPessoa(total,usersOnChat[i].pessoa_id);
-    //         } catch (error) {
-    //           console.log('Erro ao adicionar pontucao total pessoa id => '+usersOnChat[i].pessoa_id+', error =>',error);
-    //         }
-    //       }
-    //     }
-    //     if (i == usersOnChat.length-1) {
-    //       console.log('Pontos atribuidos com sucesso!');
-    //     }
-    //   }
-    // }).catch((err)=>{
-    //   console.log('Erro ao iniciar contagem de pontuação 1',err);
-    // })
   }, 180000);
 }
 

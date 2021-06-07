@@ -8,13 +8,16 @@ const AccountsLink = new mongoose.Schema({
 		unique:true
 	},
     icon: {
-		type: String,
-		required: true
+		type: String
 	},
     color: {
 		type: String,
-		required: true
+		default: '#fff'
 	},
+	statusPubSub:{
+		type: Boolean,
+		default: false
+	}
 })
 
 

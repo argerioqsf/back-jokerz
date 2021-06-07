@@ -1,12 +1,14 @@
 var axios = require('axios');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+dotenv.config();
 module.exports = {
     getTokenFromCode: async (code)=>{
         let url = `https://id.twitch.tv/oauth2/token?`;
-        url += `client_id=cxzb1067dgz0mtca08o9s9k9ny9aqk`;
-        url += `&client_secret=pmdnqe6i2hbbaiooltx2cgt0v2qsyd`;
+        url += `client_id=${process.env.CLIENT_ID}`;
+        url += `&client_secret=${process.env.CLIENT_SECRET}`;
         url += `&grant_type=authorization_code`;
-        url += `&redirect_uri=http://localhost:3000/callback_oauth`;
+        url += `&redirect_uri=${process.env.REDIRECT_URI}`;
         url += `&code=${code}`;
     
         try {

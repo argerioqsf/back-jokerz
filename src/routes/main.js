@@ -124,6 +124,7 @@ router.delete('/adm/categorias/:id',authMiddleware, categoriasController.deleteC
 
 //PUB SUB Twitch
 router.get('/twitch/SyncPoints',authMiddleware, pointsController.activeSyncPointsTwitch);
+router.get('/twitch/SyncPubsub',authMiddleware, pointsController.changeSyncPubsub);
 
 //AcconutsLink
 router.post('/acconutLink', authMiddleware, accountsLinkController.registerAccountLink);

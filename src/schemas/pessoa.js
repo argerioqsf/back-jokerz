@@ -44,6 +44,10 @@ const Pessoa = new mongoose.Schema({
 			default:false
 		}
 	}],
+	channel:{
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Channel'
+	},
 	channels:[{
 		info_channel:{
 			type: mongoose.Schema.Types.ObjectId, ref: 'Channel',
@@ -51,11 +55,11 @@ const Pessoa = new mongoose.Schema({
 		},
 		status:{
 			type:Boolean,
-			required:true
+			default:true
 		},
 		points:{
 			type:Number,
-			required:true
+			default:0
 		},
 		banned:{
 			type: Boolean,
@@ -103,6 +107,14 @@ const Pessoa = new mongoose.Schema({
 	streamer:{
 		type:Boolean,
 		default:false
+	},
+	pointsSyncTwitch:{
+		type: Boolean,
+		default:false
+	},
+	divisorPoints:{
+		type: String,
+		default:'15'
 	}
 
 })

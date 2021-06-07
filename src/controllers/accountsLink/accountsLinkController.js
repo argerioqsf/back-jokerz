@@ -35,7 +35,26 @@ const registerAccountLink = async (req, res) => {
     }
 };
 
+const changeStatusPubsub = async (status,id_accountLink) => {
+  return new Promise(async(resolve,reject)=>{
+    try {
+      let account = await AccountsLink.findOne({name:'twitch'});
+      if (account) {
+        account.statusPubSub = status;
+        await account.save();
+        resolve(true);
+      } else {
+        throw new Error("Erro ao mudar status do Pubsub, conta vinculada não encontrada");
+      }
+    } catch (error) {
+      console.log("Erro ao mudar status do Pubsub: ", error);
+      resolve(true);
+    }
+  });
+}
+
 module.exports = {
     registerAccountLink,
-    listAccountsLink
+    listAccountsLink,
+    changeStatusPubsub
 }

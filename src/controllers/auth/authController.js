@@ -1,5 +1,6 @@
 
 const Pessoa = require("../../schemas/pessoa");
+const Channel = require('../../schemas/channel');
 const oauth = require('../../services/oauthtwitch');
 const uuid = require("uuid").v4;
 const pessoasController = require('../../controllers/pessoas/pessoasController');
@@ -8,6 +9,9 @@ const canalController = require('../../controllers/canal/canalController');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../../configs/auth.json');
+const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const genereteToken = (params = {})=>{
     return jwt.sign(params, authConfig.secret,{
@@ -19,8 +23,8 @@ const getUrlTwitch = async (req, res) => {
     let { state } = req.query;
     let url = `https://id.twitch.tv/oauth2/authorize`;
     url += `?response_type=code`;
-    url += `&client_id=cxzb1067dgz0mtca08o9s9k9ny9aqk`;
-    url += `&redirect_uri=http://localhost:3000/callback_oauth`;
+    url += `&client_id=${process.env.CLIENT_ID}`;
+    url += `&redirect_uri=${process.env.REDIRECT_URI}`;
     url += `&scope=user_read+openid`;
     if (state) {
         url += `&state=${state}`;
@@ -37,9 +41,9 @@ const getUrlTwitchLinkedAccount = async (req, res) => {
     let { state } = req.query;
     let url = `https://id.twitch.tv/oauth2/authorize`;
     url += `?response_type=code`;
-    url += `&client_id=cxzb1067dgz0mtca08o9s9k9ny9aqk`;
-    url += `&redirect_uri=http://localhost:3000/callback_oauth`;
-    url += `&scope=channel:manage:redemptions channel:read:redemptions`;
+    url += `&client_id=${process.env.CLIENT_ID}`;
+    url += `&redirect_uri=${process.env.REDIRECT_URI}`;
+    url += `&scope=channel:manage:redemptions+channel:read:redemptions+user_read+openid`;
     if (state) {
         url += `&state=${state}`;
     }
@@ -75,15 +79,15 @@ const authFromCodePerson = async (req, res) => {
             }
             console.log('pessoa: ',pessoa);
             if (pessoa) {
-                if (pessoa.nickname != decodedResponse.resp.preferred_username) {
-                    return res.status(500).json({
-                        message:'O usuário da Twitch logado no seu navegador não corresponde ao que você quer vincular, faça login na conta conta da twitch correta.',
-                        error:{id_user:pessoa._id}
-                    });
-                }else{
+                // if (pessoa.nickname != decodedResponse.resp.preferred_username) {
+                //     return res.status(500).json({
+                //         message:'O usuário da Twitch logado no seu navegador não corresponde ao que você quer vincular, faça login na conta conta da twitch correta.',
+                //         error:{id_user:pessoa._id}
+                //     });
+                // }else{
                     if (pessoa.streamer && pessoa.accountsLinks) {
                         for (let i = 0; i < pessoa.accountsLinks.length; i++) {
-                            if (pessoa.accountsLinks[i].info_accountLink.name == 'Twitch') {
+                            if (pessoa.accountsLinks[i].info_accountLink.name == 'twitch') {
                                 pessoa.accountsLinks[i].active = true;
                             }
                         }
@@ -107,7 +111,7 @@ const authFromCodePerson = async (req, res) => {
                             message:'Erro ao vincular Twitch a sua conta.'
                         });
                     }
-                }
+                // }
             }else{
                 let createOrUpdate = await pessoasController.registerPerson({
                     idTwitch:decodedResponse.resp.sub,
@@ -176,6 +180,10 @@ const registerAuthStreamer = async (req, res) => {
                 let cad_channel = await canalController.registerCanal(data);
                 if (cad_channel.status) {
                     if (cad_channel.code == 201) {
+                        let person = await Pessoa.findById(data.id_person);
+                        console.log("cad_channel.data._id: ",cad_channel.data._id);
+                        person.channel = cad_channel.data._id;
+                        await person.save();
                         cad_person.data.password = undefined;
                         res.status(cad_person.code).json({
                             message:'Conta de Streamer criada com sucesso!',
@@ -186,7 +194,7 @@ const registerAuthStreamer = async (req, res) => {
                         // console.log('join_bot: ',join_bot);
                     } else {
                         res.status(cad_person.code).json({
-                            message:'Conta não criada pois o nickname ja está cadastrado no sistema'
+                            message:'Canal não criada pois o nickname ja está cadastrado no sistema'
                         });
                     }
                 }else{
@@ -197,7 +205,7 @@ const registerAuthStreamer = async (req, res) => {
                 }
             }else{
                 res.status(cad_person.code).json({
-                    message:'Conta não criada pois ja existe um usuário com este nickname'
+                    message:'Usuário não criada pois ja existe um usuário com este nickname'
                 });
             }
         }else{
@@ -220,7 +228,11 @@ const loginStreamer = async (req, res) => {
             name:nickname,
         }
     try {
-        let person = await Pessoa.findOne({nickname:nickname}).select('+password');
+        let channel = await Channel.findOne({name:nickname}).populate('id_person').populate({
+            path:'id_person',
+            populate: { path: 'permissions.ifo_permission' }
+          });;
+        let person = await Pessoa.findById(channel.id_person._id).select('+password');
         if (!person) {
             return res.status(400).send({
                 message:'Usuario não existe'
@@ -236,7 +248,8 @@ const loginStreamer = async (req, res) => {
                 return res.status(200).send({
                     message:'usuário autenticado com sucesso',
                     token:genereteToken({ id:person._id }),
-                    data:person
+                    data:person,
+                    channel:channel
                 });
             }
         }
@@ -259,10 +272,52 @@ const loginStreamer = async (req, res) => {
     //     });;
 };
 
+const refreshToken = async (id_user) => {
+    return new Promise(async (resolve,reject)=>{
+        const instance_refreshToken = axios.create({
+            baseURL: 'https://id.twitch.tv/'
+        });
+        try {
+            console.log("id_user: ",id_user);
+            let person = await Pessoa.findById(id_user);
+            if (person) {
+                // console.log("person: ",person);
+                let refresh_token = person.refreshTokenTwitch;
+                console.log("refresh_token: ",refresh_token);
+                console.log("process.env.CLIENT_ID: ",process.env.CLIENT_ID);
+                console.log("process.env.CLIENT_SECRET: ",process.env.CLIENT_SECRET);
+                let url = `grant_type=refresh_token&refresh_token=${refresh_token}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}`;
+                // console.log("url: ",url);
+                const response = await instance_refreshToken.post(`/oauth2/token?${url}`);
+                console.log("response refreshToken.expires_in: ",response.data.expires_in);
+                person.accessTokenTwitch = response.data.access_token;
+                await person.save();
+                resolve(true);
+                // return {access_token:response.data.access_token,expires_in:response.data.expires_in};
+            }else{
+                resolve(false);
+            }
+        } catch (error) {
+            // console.log("error refreshToken: ", error);
+            if (error.response) {
+                console.log("error refreshToken response: ", error.response.data.message);
+                resolve(false);
+            } else if (error.request) {
+                resolve(false);
+                console.log("error refreshToken request: ", error.message);
+            } else {
+                resolve(false);
+                console.log("error refreshToken ultimo: ", error.message);
+            }
+        }
+    });
+}
+
 module.exports = {
     getUrlTwitch,
     authFromCodePerson,
     loginStreamer,
     registerAuthStreamer,
-    getUrlTwitchLinkedAccount
+    getUrlTwitchLinkedAccount,
+    refreshToken
 }
