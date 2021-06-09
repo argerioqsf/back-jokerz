@@ -1,6 +1,7 @@
 
 // const Canal = require("../../models/Canais");
 const Pessoa = require('../../schemas/pessoa');
+const RedeemPoints = require('../../schemas/RedeemPoints');
 const pessoasController = require('../../controllers/pessoas/pessoasController');
 const accountsLinkController = require('../../controllers/accountsLink/accountsLinkController');
 const Channel = require('../../schemas/channel');
@@ -69,7 +70,9 @@ const addpoints = async(reward)=>{
         console.log('person_streamer._id: ',person_streamer._id);
         let channel = person_streamer.channel;
         console.log('channel._id: ',channel._id);
+        
         if ((channel && person)) {
+
             let new_points = parseInt(cost/parseInt(person_streamer.divisorPoints));
             person.points = person.points + new_points;
             let index_channel = person.channels.findIndex(channel_=>{
@@ -77,9 +80,19 @@ const addpoints = async(reward)=>{
                 return String(channel_.info_channel) == String(channel._id);
             });
             console.log('index_channel: ',index_channel);
+
             if (index_channel != -1 ) {
                 person.channels[index_channel].points = person.channels[index_channel].points + new_points;
-                return person.save();
+                await person.save();
+                let dataRedeeem = {
+                    date:new Date(),
+                    amount:new_points,
+                    id_user:person._id,
+                    id_channel:channel._id
+                }
+                let redeem = await RedeemPoints.create(dataRedeeem);
+                // console.log("redeem criado: ",redeem);
+                return true;
             }else{
                 console.log('canal nao encontrado no usuario');
                 person.channels = [
@@ -89,8 +102,18 @@ const addpoints = async(reward)=>{
                         points: new_points
                     }
                 ];
-                return person.save();
+                await person.save();
+                let dataRedeeem = {
+                    date:new Date(),
+                    amount:new_points,
+                    id_user:person._id,
+                    id_channel:channel._id
+                }
+                let redeem = await RedeemPoints.create(dataRedeeem);
+                // console.log("redeem criado: ",redeem);
+                return true;
             }
+
         }else{
             console.log('pessoa nao encontrada');
             if (person_streamer) {
@@ -110,10 +133,19 @@ const addpoints = async(reward)=>{
                 }
                 let new_person = await pessoasController.registerPerson(data);
                 if (new_person.status && new_person.code == 201) {
-                    console.log('Pessoa nova criada');
+                    console.log('Pessoa nova criada: ',new_person);
+                    let dataRedeeem = {
+                        date:new Date(),
+                        amount:new_points,
+                        id_user:new_person.data._id,
+                        id_channel:channel._id
+                    }
+                    let redeem = await RedeemPoints.create(dataRedeeem);
+                    return true;
                 }
             }
         }
+
     } catch (error) {
         console.log("error addpoints: ", error);
         if (error.response) {

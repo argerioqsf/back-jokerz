@@ -1,5 +1,6 @@
 
 const AccountsLink = require("../../schemas/AccountsLink");
+const Pessoa = require("../../schemas/pessoa");
 
 const listAccountsLink = async (req, res) => {
     try {
@@ -39,6 +40,12 @@ const changeStatusPubsub = async (status,id_accountLink) => {
   return new Promise(async(resolve,reject)=>{
     try {
       let account = await AccountsLink.findOne({name:'twitch'});
+      let personsPointsOn = await Pessoa.find({pointsSyncTwitch:true});
+      // console.log("personsPointsOn 1: ",personsPointsOn);
+      for (let i = 0; i < personsPointsOn.length; i++) {
+        personsPointsOn[i].pointsSyncTwitch = false;
+        await personsPointsOn[i].save();
+      }
       if (account) {
         account.statusPubSub = status;
         await account.save();

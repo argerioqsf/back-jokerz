@@ -8,7 +8,10 @@ const AccountsLink = require('../../schemas/AccountsLink');
 
 const listPessoas = async (req, res) => {
     try {
-        let pessoas = await Pessoa.find().populate('channels.info_channel').populate('permissions.ifo_permission').populate('accountsLinks.info_accountLink');
+        let pessoas = await Pessoa.find()
+        .populate('channels.info_channel')
+        .populate('permissions.ifo_permission')
+        .populate('accountsLinks.info_accountLink');
           res.status(200).json({
             data:pessoas
           });
@@ -18,14 +21,6 @@ const listPessoas = async (req, res) => {
               error:error
           });
     }
-
-    // Pessoa.selectPessoas().then((data) => {
-    //   res.status(200).json({
-    //     pessoas:data
-    //   });
-    // }).catch((err) => {
-    //   res.status(400).send(['Erro ao listar pessoas']);
-    // });
 };
 
 const listPersonForType = async (req, res) => {

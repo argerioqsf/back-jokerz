@@ -11,6 +11,7 @@ const partidaController = require('../controllers/partida/partidaController');
 const categoriasController = require('../controllers/categorias/categoriasController');
 const pointsController = require('../controllers/points/pointsController');
 const accountsLinkController = require('../controllers/accountsLink/accountsLinkController');
+const redeeemPointsController = require('../controllers/redeeemPoints/redeeemPointsController');
 const authMiddleware = require('../middlewares/auth');
 
 //multer
@@ -130,6 +131,8 @@ router.get('/twitch/SyncPubsub',authMiddleware, pointsController.changeSyncPubsu
 router.post('/acconutLink', authMiddleware, accountsLinkController.registerAccountLink);
 router.get('/acconutLink', accountsLinkController.listAccountsLink);
 
+//RedeemPoints
+router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
 
 
 module.exports = router;
