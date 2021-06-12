@@ -12,6 +12,7 @@ const categoriasController = require('../controllers/categorias/categoriasContro
 const pointsController = require('../controllers/points/pointsController');
 const accountsLinkController = require('../controllers/accountsLink/accountsLinkController');
 const redeeemPointsController = require('../controllers/redeeemPoints/redeeemPointsController');
+const redeemProductsController = require('../controllers/redeemProducts/redeemProductsController');
 const authMiddleware = require('../middlewares/auth');
 
 //multer
@@ -76,6 +77,7 @@ router.post('/products/promo',authMiddleware,productsController.setPromo);
 router.get('/products/promo',productsController.listProductsPromo);
 router.delete('/products/sticker', authMiddleware, productsController.deleteStickerProduct);
 router.delete('/products/:id', authMiddleware, productsController.deleteProduct);
+router.post('/products/redeeem', authMiddleware, productsController.redeemProduct);
 
 //auth
 // router.get('/auth/login',passport.authenticate("twitch"));
@@ -134,5 +136,8 @@ router.get('/acconutLink', accountsLinkController.listAccountsLink);
 //RedeemPoints
 router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
 
+//RedeemProducts
+router.get('/redeemProducts', authMiddleware, redeemProductsController.listRedeemProducts);
+router.put('/redeemProducts', authMiddleware, redeemProductsController.changeStatusRedeemProducts);
 
 module.exports = router;

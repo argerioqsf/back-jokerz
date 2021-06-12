@@ -82,9 +82,9 @@ const connect = ()=>{
                     let id_channel = topic_split[1];
                     let topic = topic_split[0];
                     if (message.type == "MESSAGE") {
-                        console.log('topic_split: ',topic_split);
-                        console.log('id_channel: ',id_channel);
-                        console.log('topic: ',topic);
+                        // console.log('topic_split: ',topic_split);
+                        // console.log('id_channel: ',id_channel);
+                        // console.log('topic: ',topic);
                         // console.log('data: ',data.redemption);
                         let reward = {
                             cost:data.redemption.reward.cost,
@@ -94,12 +94,12 @@ const connect = ()=>{
                             redemption_id: data.redemption.id,
                             id_twitch_streamer: data.redemption.channel_id
                         }
-                        console.log('reward: ',reward);
+                        // console.log('reward: ',reward);
                         const pointsController = require('../../controllers/points/pointsController');
                         await pointsController.addpoints(reward);
                     }
                 } else {
-                    console.log("message text: ",message);
+                    // console.log("message text: ",message);
     
                     const pessoasController = require('../../controllers/pessoas/pessoasController');
 
@@ -118,7 +118,7 @@ const connect = ()=>{
                         if (message.error.length == 0) {
                             if (message.nonce.length > 0) {
                                 let nonce = JSON.parse(message.nonce);
-                                console.log("nonce: ",nonce);
+                                // console.log("nonce: ",nonce);
                                 if (nonce.type == 'LISTEN') {
                                     await pessoasController.changePointsSyncTwitch(nonce.id_user,true);
                                 }

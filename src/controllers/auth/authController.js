@@ -56,20 +56,25 @@ const getUrlTwitchLinkedAccount = async (req, res) => {
 };
 
 const authFromCodePerson = async (req, res) => {
+    const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim() || 
+    req.connection.remoteAddress || 
+    req.socket.remoteAddress || 
+    req.connection.socket.remoteAddress
+    console.log("ip: ",ip);
     const { code, id_user = null } = req.query;
-    console.log('code: ',code);
-    console.log('id_user: ',id_user);
+    // console.log('code: ',code);
+    // console.log('id_user: ',id_user);
     res.header('Access-Control-Allow-Credentials', true)
-    res.header('Access-Control-Allow-Origin', 'http://localhost:3000')
+    res.header('Access-Control-Allow-Origin', process.env.URL_SITE)
     try {
         const resp = await oauth.getTokenFromCode(code);
         let data = resp.resp.data;
-        console.log('resp.status: ',resp.status);
+        // console.log('resp.status: ',resp.status);
         // console.log('data: ',data);
         
         if (resp.status) {
             let decodedResponse = await oauth.parseJWTToken(resp.resp.data.id_token);
-            console.log('decodedResponse: ',decodedResponse);
+            // console.log('decodedResponse: ',decodedResponse);
             let pessoa = null;
             if (id_user) {
                 pessoa = await Pessoa.findById(id_user).populate('accountsLinks.info_accountLink');
@@ -77,7 +82,7 @@ const authFromCodePerson = async (req, res) => {
                 pessoa = await Pessoa.find({idTwitch:decodedResponse.resp.sub}).populate('accountsLinks.info_accountLink');
                 pessoa = pessoa.length > 0?pessoa[0]:null;
             }
-            console.log('pessoa: ',pessoa);
+            // console.log('pessoa: ',pessoa);
             if (pessoa) {
                 // if (pessoa.nickname != decodedResponse.resp.preferred_username) {
                 //     return res.status(500).json({
@@ -96,6 +101,10 @@ const authFromCodePerson = async (req, res) => {
                     pessoa.nickname = decodedResponse.resp.preferred_username;
                     pessoa.accessTokenTwitch = data.access_token;
                     pessoa.refreshTokenTwitch = data.refresh_token;
+                    if (!pessoa.ip_user) {
+                        console.log("novo IP:",ip);
+                        pessoa.ip_user = ip;
+                    }
                     let save = await pessoa.save();
                     if (save) {
                         return res.status(200).json({
@@ -113,12 +122,14 @@ const authFromCodePerson = async (req, res) => {
                     }
                 // }
             }else{
+                const pessoasController = require('../../controllers/pessoas/pessoasController');
                 let createOrUpdate = await pessoasController.registerPerson({
                     idTwitch:decodedResponse.resp.sub,
                     nickname:decodedResponse.resp.preferred_username,
                     name:decodedResponse.resp.preferred_username,
                     accessTokenTwitch:data.access_token,
-                    refreshTokenTwitch:data.refresh_token
+                    refreshTokenTwitch:data.refresh_token,
+                    ip_user:ip
                 });
                 if (createOrUpdate.status) {
                     return res.status(200).json({

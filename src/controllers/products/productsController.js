@@ -2,6 +2,9 @@ const Products = require('../../schemas/products');
 const products_steam = require('../../services/products_steam');
 var path = require('path');
 let fs = require('fs');
+const Pessoa = require('../../schemas/pessoa');
+const RedeemProduct = require('../../schemas/RedeemProduct');
+const Channel = require('../../schemas/channel');
 
 const listProducts = async (req, res) => {
     const { page = 1, limit = 12, last = false, status = null } = req.query;
@@ -63,7 +66,8 @@ const findProductById = async (req, res) => {
 };
   
 const registerProduct = async (req, res) => {
-
+    console.log('req.userId: ',req.userId);
+    const id_user = req.userId;
     const data = req.body;
     // console.log("data: ",data);
     data.price = data.price_real * 1500;
@@ -74,6 +78,7 @@ const registerProduct = async (req, res) => {
     data.stickersinfo = data.stickersinfo?JSON.parse(data.stickersinfo):[];
     let quant_stickers = data.quant_stickers?parseInt(data.quant_stickers):0;
     data.quant_stickers = quant_stickers;
+    data.id_owner = id_user;
     console.log("files: ",files);
     console.log("data.stickersinfo: ",data.stickersinfo);
     if (data.stickersinfo.length > 0 && files) {
@@ -240,10 +245,12 @@ const editProduct = async (req, res) => {
 const changeStatusProduct = async (req, res) => {
     console.log("changeStatusProduct");
     try {
+        const id_user = req.userId;
         const id = req.params.id;
         let product = await Products.findById(id);
         if (product) {
             let data = req.body;
+            data.id_owner = id_user;
             let status = data.status;
             console.log("data: ",data);
             if (status && (status === "cadastrado" || status === "emEstoque" || status === "esgotado")) {
@@ -273,10 +280,22 @@ const changeStatusProduct = async (req, res) => {
 
 const registerProductsCs = async (req, res) => {
     try {
+        console.log('req.userId: ',req.userId);
+        const id_user = req.userId;
         console.log('antes getItensCs ');
         const itens_cs = await products_steam.getItensCs();
         console.log('depois getItensCs ');
         // let data = itens_cs.data.rgDescriptions;
+        if (itens_cs.length > 0) {
+            res.status(200).json({
+                message:'Atualizando produtos...',
+                time:(itens_cs.data.descriptions.length * 5)/60
+            });
+        } else {
+            res.status(200).json({
+                message:'Sem itens na steam.'
+            });
+        }
         let data = await products_steam.scrapsteam(itens_cs);
         console.log('data length: ',data.length);
         let info_register = {
@@ -296,7 +315,8 @@ const registerProductsCs = async (req, res) => {
                         });
 
                         let product = {
-                            id_owner:item.id_owner,
+                            id_owner_steam:item.id_owner,
+                            id_owner:id_user,
                             class_id:item.classid,
                             name:item.market_name,
                             name_store:item.market_name,
@@ -333,8 +353,8 @@ const registerProductsCs = async (req, res) => {
                                 await fs.promises.unlink(dir);
                                 prod.imagepath = null;
                             }
-                            console.log(index + ' - item '+prod.name+' atualizado: ');
-                            prod.id_owner=item.id_owner;
+                            prod.id_owner_steam=item.id_owner;
+                            prod.id_owner=id_user;
                             prod.class_id=item.classid;
                             prod.name=item.market_name;
                             prod.name_store=item.market_name;
@@ -356,6 +376,7 @@ const registerProductsCs = async (req, res) => {
                             prod.weapon = item.weapon;
                             prod.nametag = item.nametag;
                             await prod.save();
+                            console.log(index + ' - item '+prod.name+' atualizado: ');
                             info_register.update = info_register.update+1;
                         }else{
                             console.log('cadastrando product: ',product.name);
@@ -368,27 +389,17 @@ const registerProductsCs = async (req, res) => {
                         if (index == data.length - 1) {
                         }
                     }
+                    console.log("Itens da Steam cadastrados com sucesso!");
                 // });
-                res.status(200).json({
-                    message:'Atualizando produtos...',
-                    info_register:info_register
-                });
             }else{
-                res.status(200).json({
-                    message:'Sem itens na steam.'
-                });
+                console.log("Sem itens na steam");
             }
             
         }else{
-            res.status(500).json({
-                message:'Erro ao carregar itens do CS 1',
-            });
+            console.log("Erro ao carregar itens do CS 1");
         }
     } catch (error) {
-        res.status(500).json({
-            message:"Erro ao carregar itens do CS 2",
-            error:error
-        });
+        console.log("Erro ao carregar itens do CS 2: ",error);
     }
 };
 
@@ -502,6 +513,139 @@ const listProductsPromo = async (req, res) => {
     }
 };
 
+const historyRedeemProduct = async (id_user, id_product, id_owner, id_channel)=>{
+    return new Promise( async (resolve,reject)=>{
+        try {
+            let product = await Products.findById(id_product);
+            let person = await Pessoa.findById(id_user);
+            if (product && person) {
+                let redeem = {
+                    date:new Date(),
+                    product_id:product._id,
+                    amount:product.price,
+                    product_float:parseFloat(product.floatvalue) > 0?product.floatvalue:null,
+                    id_user:person._id,
+                    tradeLink:person.tradelinkSteam.length > 0?product.tradelinkSteam:null,
+                    id_owner:id_owner,
+                    id_channel:id_channel
+                }
+                let new_redeem = await RedeemProduct.create(redeem);
+                resolve(new_redeem);
+            } else {
+                resolve(false);
+            }
+        } catch (error) {
+            console.log("erro ao criar histórico de resgate de produto")
+            resolve(false);
+        }
+    });
+}
+
+const redeemProduct = async (req, res)=>{
+    console.log('req.userId: ',req.userId);
+    try {
+        const data = req.body;
+        let id_user = req.userId?req.userId:'';
+        let id_product = data.id_product?data.id_product:'';
+        console.log('id_product: ',id_product);
+        let product = await Products.findById(id_product);
+        let person = await Pessoa.findById(id_user);
+        if (product) {
+            let id_owner = product.id_owner?product.id_owner:'';
+            let channel = await Channel.findOne({id_person:id_owner});
+            console.log('channel: ',channel);
+            console.log('person.tradelinkSteam: ',person.tradelinkSteam);
+            let id_channel = channel._id?channel._id:'';
+            console.log('id_channel: ',id_channel);
+            if (String(id_channel).length > 0) {
+                if (person.tradelinkSteam && person.tradelinkSteam.length > 0) {
+                    if (product.status == 'emEstoque') {
+                        if (person.points >= product.price) {
+                            if (product.amount > 1) {
+                                let product_up = await Products.findByIdAndUpdate(id_product,{
+                                    amount: product.amount -1
+                                });
+                                let person_up = await Pessoa.findByIdAndUpdate(id_user,{
+                                    points: person.points - product.price
+                                });
+                                let resp = await historyRedeemProduct(id_user, id_product, id_owner, id_channel);
+                                if (resp) {
+                                    return res.status(200).json({
+                                      data:resp,
+                                      message:"Produto resgatado com sucesso"
+                                    });
+                                } else {
+                                    let product_up = await Products.findByIdAndUpdate(id_product,{
+                                        amount: product.amount +1
+                                    });
+                                    return res.status(500).send({
+                                        message:'Erro ao resgatar produto, erro ao cadastro log de resgate'
+                                    });
+                                }
+                            }else{
+                                console.log('product.amount: ',product.amount);
+                                if (product.amount > 0) {
+                                    let product_up = await Products.findByIdAndUpdate(id_product,{
+                                        status:'esgotado',
+                                        amount: 0
+                                    });
+                                    let person_up = await Pessoa.findByIdAndUpdate(id_user,{
+                                        points: person.points - product.price 
+                                    });
+                                    let resp = await historyRedeemProduct(id_user, id_product, id_owner, id_channel);
+                                    if (resp) {
+                                        return res.status(200).json({
+                                          data:resp,
+                                          message:"Produto resgatado com sucesso"
+                                        });
+                                    } else {
+                                        let product_up = await Products.findByIdAndUpdate(id_product,{
+                                            amount: 1
+                                        });
+                                        return res.status(500).send({
+                                            message:'Erro ao resgatar produto, erro ao cadastro log de resgate'
+                                        });
+                                    }
+                                }else{
+                                    return res.status(400).send({
+                                        message:'Erro ao resgatar produto, produto fora de estoque'
+                                    });
+                                }
+                            }
+                        }else{
+                            return res.status(400).send({
+                                message:'Erro ao resgatar produto, pontos insuficientes'
+                            });
+                        }
+                    } else {
+                        return res.status(400).send({
+                            message:'Erro ao resgatar produto, produto fora de estoque'
+                        });
+                        
+                    }
+                }else{
+                    return res.status(400).send({
+                        message:'Erro ao resgatar produto, tradeLink não encontrado'
+                    });
+                }
+            } else {
+                return res.status(400).send({
+                    message:'Erro ao resgatar produto, canal não encantrado'
+                });
+            }
+        } else {
+            return res.status(400).send({
+                message:'Erro ao resgatar produto, produto não encontrado'
+            });
+        }
+    } catch (error) {
+        return res.status(500).send({
+            message:'Erro ao resgatar produto',
+            error:error
+        });
+    }
+}
+
 module.exports = {
     listProducts,
     listProductsPromo,
@@ -512,5 +656,7 @@ module.exports = {
     editProduct,
     deleteStickerProduct,
     changeStatusProduct,
-    deleteProduct
+    deleteProduct,
+    // historyRedeemProduct,
+    redeemProduct
 }

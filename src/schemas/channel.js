@@ -20,7 +20,7 @@ const Channel = new mongoose.Schema({
 		type:Boolean,
 		default:false
 	},
-	max_secondary_account:{
+	max_farm_account:{
 		type:Number,
 		default:1
 	}

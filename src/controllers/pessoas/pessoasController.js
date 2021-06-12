@@ -223,6 +223,7 @@ const setTypePerson = async (req, res) => {
                 if (type_account == 'secondary' && id_person_primary) {
                     person.primary_account_ref = id_person_primary;
                     let person_primary = await Pessoa.findById(id_person_primary);
+
                     if (person_primary.secondary_accounts.length >= 2) {
                         return res.status(400).json({
                             message:'Conta primária já excedeu o limite de contas secundárias vinculadas',
@@ -234,6 +235,17 @@ const setTypePerson = async (req, res) => {
                         person._id
                     ]
                     await person_primary.save();
+                }
+
+                if (type_account == 'primary') {
+                    let person = await Pessoa.findById(id_person);
+                    const ip = person.ip_user?person.ip_user:'';
+                    let persons_primary = await Pessoa.find({ip_user:ip,type_account:'primary'});
+                    if (persons_primary.length > 0) {
+                        return res.status(400).json({
+                            message:'Erro ao setar o tipo de conta, limite de contas primarias esgotado',
+                        });
+                    }
                 }
                 let person_up = await person.save();
                 res.status(200).json({

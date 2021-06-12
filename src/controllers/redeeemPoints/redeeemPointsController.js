@@ -1,14 +1,15 @@
 
 const RedeemPoints = require('../../schemas/RedeemPoints');
 const dotenv = require('dotenv');
-var ObjectId = require('mongodb').ObjectId;
 dotenv.config();
 // const botController = require('../../controllers/bot/botController');
 
 const listRedeemPoints = async (req, res) => {
     const { page = 1, limit = 12, last = false, status = null } = req.query;
+    console.log('req.userId: ',req.userId);
+    const id_user = req.userId;
     try {
-        let redeeem_quant = 0;
+        let redeeems_quant = 0;
         let redeeems = [];
         let find = status?{status:status}:{}
         if (last) {

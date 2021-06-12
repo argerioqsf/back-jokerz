@@ -8,7 +8,6 @@ const Channel = require('../../schemas/channel');
 const pubsubTwitch = require('../../services/pubsubTwitch');
 const axios = require('axios');
 const dotenv = require('dotenv');
-var ObjectId = require('mongodb').ObjectId;
 dotenv.config();
 // const botController = require('../../controllers/bot/botController');
 
@@ -55,6 +54,12 @@ const activeSyncPointsTwitch = async (req, res) => {
     }
 };
 
+const verifyQuantAccountFarm = async (id_channel, id_primary_account) => {
+    return new Promise((resolve,reject)=>{
+            return resolve(0);
+    });
+}
+
 const addpoints = async(reward)=>{
     try {
         let { 
@@ -67,58 +72,111 @@ const addpoints = async(reward)=>{
         } = reward;
         let person = await Pessoa.findOne({idTwitch: id_twitch_user}).populate('channel.info_channel');
         let person_streamer = await Pessoa.findOne({idTwitch: id_twitch_streamer}).populate('channel');
-        console.log('person_streamer._id: ',person_streamer._id);
+        // console.log('person_streamer._id: ',person_streamer._id);
         let channel = person_streamer.channel;
-        console.log('channel._id: ',channel._id);
-        
-        if ((channel && person)) {
-
-            let new_points = parseInt(cost/parseInt(person_streamer.divisorPoints));
-            person.points = person.points + new_points;
-            let index_channel = person.channels.findIndex(channel_=>{
-                console.log(`channel_.info_channel (${channel_.info_channel}) :: channel._id (${channel._id})`);
-                return String(channel_.info_channel) == String(channel._id);
-            });
-            console.log('index_channel: ',index_channel);
-
-            if (index_channel != -1 ) {
-                person.channels[index_channel].points = person.channels[index_channel].points + new_points;
-                await person.save();
-                let dataRedeeem = {
-                    date:new Date(),
-                    amount:new_points,
-                    id_user:person._id,
-                    id_channel:channel._id
+        // console.log('channel._id: ',channel._id);
+        let quant_account_farm = 0;
+        if (person) {
+            if (channel) {
+                let id_primary_account = false;
+                if (person.type_account == 'primary') {
+                    id_primary_account = person._id;
                 }
-                let redeem = await RedeemPoints.create(dataRedeeem);
-                // console.log("redeem criado: ",redeem);
-                return true;
-            }else{
-                console.log('canal nao encontrado no usuario');
-                person.channels = [
-                    ...person.channels,
-                    {
-                        info_channel: channel._id,
-                        points: new_points
+                if (person.type_account == 'secondary') {
+                    if (person.primary_account_ref) {
+                        id_primary_account = person.primary_account_ref;
+                    }else{
+                        id_primary_account = null;
                     }
-                ];
-                await person.save();
-                let dataRedeeem = {
-                    date:new Date(),
-                    amount:new_points,
-                    id_user:person._id,
-                    id_channel:channel._id
                 }
-                let redeem = await RedeemPoints.create(dataRedeeem);
-                // console.log("redeem criado: ",redeem);
-                return true;
-            }
+                if (person.type_account == 'pendente') {
+                    id_primary_account = person._id;
+                }
+                if (id_primary_account == null) {
+                    console.log("id_primary_account null");
+                    return false;
+                }
+                if (id_primary_account == false) {
+                    console.log("id_primary_account false");
+                    return false;
+                }
+                if (id_primary_account) {
+                    quant_account_farm = await verifyQuantAccountFarm(channel._id,id_primary_account);
+                }
 
+                console.log("quant_account_farm: ",quant_account_farm);
+                
+                let new_points = parseInt(cost/parseInt(person_streamer.divisorPoints));
+                person.points = person.points + new_points;
+                let index_channel = person.channels.findIndex(channel_=>{
+                    // console.log(`channel_.info_channel (${channel_.info_channel}) :: channel._id (${channel._id})`);
+                    return String(channel_.info_channel) == String(channel._id);
+                });
+                // console.log('index_channel: ',index_channel);
+
+                if (index_channel != -1 ) {
+                    person.channels[index_channel].points = person.channels[index_channel].points + new_points;
+                    //////////////////////////////////////////////////
+                    if (person.type_account == 'secondary') {
+                        let person_primary = await Pessoa.findById(person.primary_account_ref);
+                        person_primary.points = person_primary.points + new_points;
+                        await person_primary.save();
+                    }
+                    person.channels[index_channel].status = true;
+                    await person.save();
+                    let dataRedeeem = {
+                        date:new Date(),
+                        amount:new_points,
+                        id_user:person._id,
+                        id_channel:channel._id
+                    }
+                    let redeem = await RedeemPoints.create(dataRedeeem);
+                    // console.log("redeem criado: ",redeem);
+                    return true;
+                }else{
+                    if (quant_account_farm < channel.max_farm_account) {
+                        console.log('canal nao encontrado no usuario');
+                        //////////////////////////////////////////////////
+                        if (person.type_account == 'secondary') {
+                            let person_primary = await Pessoa.findById(person.primary_account_ref);
+                            person_primary.points = person_primary.points + new_points;
+                            await person_primary.save();
+                        }
+                        person.channels = [
+                            ...person.channels,
+                            {
+                                info_channel: channel._id,
+                                points: new_points,
+                                status:true
+                            }
+                        ];
+                        await person.save();
+                        let dataRedeeem = {
+                            date:new Date(),
+                            amount:new_points,
+                            id_user:person._id,
+                            id_channel:channel._id
+                        }
+                        let redeem = await RedeemPoints.create(dataRedeeem);
+                        // console.log("redeem criado: ",redeem);
+                        return true;
+                    }else{
+                        //setar resgate como UNFULFILLED
+                        //e mandar mensagem no chat informando que o numero maximo de contas farmando foi atingido
+                        console.log("conta limite farmando excedido");
+                        return false;
+                    }
+                }
+            }else{
+                console.log("canal nao encontrado");
+                return false;
+            }
         }else{
             console.log('pessoa nao encontrada');
             if (person_streamer) {
                 console.log('Criando pessoa nova');
                 let new_points = parseInt(cost/parseInt(person_streamer.divisorPoints));
+                //////////////////////////////////////////////////
                 let data = {
                     nickname:name_user,
                     name:name_user,
@@ -127,21 +185,30 @@ const addpoints = async(reward)=>{
                     channels:[
                         {
                             info_channel: channel._id,
-                            points: new_points
+                            points: new_points,
+                            status:true
                         }
                     ]
                 }
-                let new_person = await pessoasController.registerPerson(data);
-                if (new_person.status && new_person.code == 201) {
-                    console.log('Pessoa nova criada: ',new_person);
-                    let dataRedeeem = {
-                        date:new Date(),
-                        amount:new_points,
-                        id_user:new_person.data._id,
-                        id_channel:channel._id
+                // let reward_change = await changeStatus('FULFILLED',id_twitch_streamer,reward_id,redemption_id,person_streamer.accessTokenTwitch);
+                if (true) {
+                    let new_person = await pessoasController.registerPerson(data);
+                    if (new_person.status && new_person.code == 201) {
+                        console.log('Pessoa nova criada: ',new_person);
+                        let dataRedeeem = {
+                            date:new Date(),
+                            amount:new_points,
+                            id_user:new_person.data._id,
+                            id_channel:channel._id
+                        }
+                        let redeem = await RedeemPoints.create(dataRedeeem);
                     }
-                    let redeem = await RedeemPoints.create(dataRedeeem);
-                    return true;
+                }else{
+                    data.points = 0;
+                    let new_person = await pessoasController.registerPerson(data);
+                    if (new_person.status && new_person.code == 201) {
+                        console.log('Pessoa nova criada: ',new_person);
+                    }
                 }
             }
         }
@@ -195,7 +262,7 @@ const addpointsStreamElements = async(quant,nomeUser)=>{
     }
 }
 
- const changeStatus = async(status,id_twitch,reward_id,id,quant,nome,token_twitch)=>{
+ const changeStatus = async(status,id_twitch,reward_id,redemption_id,token_twitch)=>{
     const instance_changeStatus = axios.create({
         baseURL: 'https://api.twitch.tv/',
         headers: {
@@ -207,24 +274,27 @@ const addpointsStreamElements = async(quant,nomeUser)=>{
     const body = {
         status:status
     }
-    try {
-        const response = await instance_changeStatus.patch(`helix/channel_points/custom_rewards/redemptions?broadcaster_id=${id_twitch}&reward_id=${reward_id}&id=${id}`,body)
-        
-        // handle success
-        console.log("response changeStatus");
-        console.log(response.data);
-        return response;
-    } catch (error) {
-        addpoints(-(quant),nome);
-        console.log("error changeStatus: ", error);
-        if (error.response) {
-        console.log("error changeStatus: ", error.response.data.message);
-        } else if (error.request) {
-        console.log("error changeStatus: ", error.message);
-        } else {
-        console.log("error changeStatus: ", error.message);
+    return new Promise(async(resolve,reject)=>{
+        try {
+            const response = await instance_changeStatus.patch(`helix/channel_points/custom_rewards/redemptions?broadcaster_id=${id_twitch}&reward_id=${reward_id}&id=${redemption_id}`,body)
+            
+            // handle success
+            console.log("response changeStatus");
+            console.log(response.data);
+            resolve(true);
+        } catch (error) {
+            // addpoints(-(quant),nome);
+            resolve(false);
+            console.log("error changeStatus: ", error);
+            if (error.response) {
+            console.log("error changeStatus: ", error.response.data.message);
+            } else if (error.request) {
+            console.log("error changeStatus: ", error.message);
+            } else {
+            console.log("error changeStatus: ", error.message);
+            }
         }
-    }
+    });
 }
 
 const changeSyncPubsub = async (req, res)=>{

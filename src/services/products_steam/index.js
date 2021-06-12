@@ -117,6 +117,13 @@ async function stickersname(imagelinkraw){
 async function getFloat(tradelink){
     return axios.get(`https://api.csgofloat.com/?url=${tradelink}`); 
 }
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+}
 
 module.exports = {
     getItensCs: async ()=>{
@@ -135,6 +142,7 @@ module.exports = {
     
                                 let data_descriptions = response.data.descriptions[u];
                                 let data_assets = response.data.assets[i];
+                                sleep(5000);
                                 let itens_organizados = await organizeItens(data_descriptions,data_assets,i);
                                 itens_organizados.id_owner = id_owner;
                                 itens.push(itens_organizados);

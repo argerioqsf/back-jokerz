@@ -54,8 +54,12 @@ const Products = new mongoose.Schema({
 	class_id:{
         type:String
 	},
-	id_owner:{
+	id_owner_steam:{
         type:String
+	},
+	id_owner:{
+		type:mongoose.Schema.Types.ObjectId,
+		ref:'Pessoa'
 	},
 
     status:{
