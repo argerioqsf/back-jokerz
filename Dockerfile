@@ -1,15 +1,19 @@
-FROM node:11-alpine
+FROM node:12.18.3
 
 WORKDIR /node-app
 
-COPY package.json .
+COPY ["package.json", "package-lock.json", "./"]
 
-RUN npm install
+RUN ls
 
-RUN npm install nodemon -g --quiet
+RUN npm install --production
+
+# RUN npm install nodemon -g --quiet
 
 COPY . . 
 
 EXPOSE 3333
 
-CMD nodemon -L --watch . index.js
+# CMD nodemon -L --watch . index.js
+
+CMD ["node", "app.js"]
