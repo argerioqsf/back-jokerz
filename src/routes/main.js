@@ -130,7 +130,7 @@ router.get('/twitch/SyncPoints',authMiddleware, pointsController.activeSyncPoint
 router.get('/twitch/SyncPubsub',authMiddleware, pointsController.changeSyncPubsub);
 
 //AcconutsLink
-router.post('/acconutLink', authMiddleware, accountsLinkController.registerAccountLink);
+router.post('/acconutLink',  accountsLinkController.registerAccountLink);
 router.get('/acconutLink', accountsLinkController.listAccountsLink);
 
 //RedeemPoints
