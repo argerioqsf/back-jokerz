@@ -2,13 +2,16 @@ version: '3'
 
 services:
   server:
-    container_name: NODEJS_SERVER_MEDIUM
-    build: '.'
+    image: "backjokerz"
+    container_name: BACK-JOKERZ
     volumes:
       - ./:/node-app
       - /node-app/node_modules
     environment:
       NODE_ENV: development
+    env_file:
+        ".env"
+    build: '.'
     depends_on:
       - mongo
     links:
