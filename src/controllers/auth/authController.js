@@ -162,7 +162,7 @@ const authFromCodePerson = async (req, res) => {
 };
   
 const registerAuthStreamer = async (req, res) => {
-  
+  const pessoasController = require('../../controllers/pessoas/pessoasController');
   const {
       name,
       password,
