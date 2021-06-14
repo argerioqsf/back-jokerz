@@ -4,8 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const Pessoa = new mongoose.Schema({
 	ip_user: {
-		type: String,
-		unique:true
+		type: String
 	},
 	name: {
 		type: String,

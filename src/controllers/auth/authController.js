@@ -205,7 +205,7 @@ const registerAuthStreamer = async (req, res) => {
                         // console.log('join_bot: ',join_bot);
                     } else {
                         res.status(cad_person.code).json({
-                            message:'Canal não criada pois o nickname ja está cadastrado no sistema'
+                            message:'Canal não criado ja exist um canal criado no sistema'
                         });
                     }
                 }else{
