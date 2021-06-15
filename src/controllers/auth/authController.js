@@ -84,43 +84,49 @@ const authFromCodePerson = async (req, res) => {
             }
             // console.log('pessoa: ',pessoa);
             if (pessoa) {
-                // if (pessoa.nickname != decodedResponse.resp.preferred_username) {
-                //     return res.status(500).json({
-                //         message:'O usuário da Twitch logado no seu navegador não corresponde ao que você quer vincular, faça login na conta conta da twitch correta.',
-                //         error:{id_user:pessoa._id}
-                //     });
-                // }else{
-                    if (pessoa.streamer && pessoa.accountsLinks) {
-                        for (let i = 0; i < pessoa.accountsLinks.length; i++) {
-                            if (pessoa.accountsLinks[i].info_accountLink.name == 'twitch') {
-                                pessoa.accountsLinks[i].active = true;
+                if (pessoa.streamer == true && !id_user) {
+                    return res.status(400).json({
+                        message:'Erro ao autenticar usuário, tente fazer login pela interface administrativa'
+                    });
+                }else{
+                    // if (pessoa.nickname != decodedResponse.resp.preferred_username) {
+                    //     return res.status(500).json({
+                    //         message:'O usuário da Twitch logado no seu navegador não corresponde ao que você quer vincular, faça login na conta conta da twitch correta.',
+                    //         error:{id_user:pessoa._id}
+                    //     });
+                    // }else{
+                        if (pessoa.streamer && pessoa.accountsLinks) {
+                            for (let i = 0; i < pessoa.accountsLinks.length; i++) {
+                                if (pessoa.accountsLinks[i].info_accountLink.name == 'twitch') {
+                                    pessoa.accountsLinks[i].active = true;
+                                }
                             }
                         }
-                    }
-                    pessoa.idTwitch = decodedResponse.resp.sub;
-                    pessoa.nickname = decodedResponse.resp.preferred_username;
-                    pessoa.accessTokenTwitch = data.access_token;
-                    pessoa.refreshTokenTwitch = data.refresh_token;
-                    if (!pessoa.ip_user) {
-                        console.log("novo IP:",ip);
-                        pessoa.ip_user = ip;
-                    }
-                    let save = await pessoa.save();
-                    if (save) {
-                        return res.status(200).json({
-                            message:'Token gerado atraves do code com sucesso, conta vinculada!',
-                            data:{
-                                ...decodedResponse.resp,
-                                user_id:pessoa._id
-                            },
-                            token:genereteToken({ id:pessoa._id }),
-                        });
-                    }else{
-                        return res.status(500).json({
-                            message:'Erro ao vincular Twitch a sua conta.'
-                        });
-                    }
-                // }
+                        pessoa.idTwitch = decodedResponse.resp.sub;
+                        pessoa.nickname = decodedResponse.resp.preferred_username;
+                        pessoa.accessTokenTwitch = data.access_token;
+                        pessoa.refreshTokenTwitch = data.refresh_token;
+                        if (!pessoa.ip_user) {
+                            console.log("novo IP:",ip);
+                            pessoa.ip_user = ip;
+                        }
+                        let save = await pessoa.save();
+                        if (save) {
+                            return res.status(200).json({
+                                message:'Token gerado atraves do code com sucesso, conta vinculada!',
+                                data:{
+                                    ...decodedResponse.resp,
+                                    user_id:pessoa._id
+                                },
+                                token:genereteToken({ id:pessoa._id }),
+                            });
+                        }else{
+                            return res.status(500).json({
+                                message:'Erro ao vincular Twitch a sua conta.'
+                            });
+                        }
+                    // }
+                }
             }else{
                 const pessoasController = require('../../controllers/pessoas/pessoasController');
                 let createOrUpdate = await pessoasController.registerPerson({
