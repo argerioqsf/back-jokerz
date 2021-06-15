@@ -44,7 +44,7 @@ const upload = multer({
 // const upload = multer({dest:'uploads/'});
 
 //pessoas
-router.get('/person',pessoasController.listPessoas);
+router.get('/person', authMiddleware, pessoasController.listPessoas);
 router.get('/person/type_accounts',pessoasController.listPersonForType);
 router.get('/person/info', authMiddleware,pessoasController.findPerson);
 router.post('/person/type', authMiddleware,pessoasController.setTypePerson);

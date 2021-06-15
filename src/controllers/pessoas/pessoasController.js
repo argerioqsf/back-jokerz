@@ -8,13 +8,34 @@ const AccountsLink = require('../../schemas/AccountsLink');
 
 const listPessoas = async (req, res) => {
     try {
-        let pessoas = await Pessoa.find()
-        .populate('channels.info_channel')
-        .populate('permissions.ifo_permission')
-        .populate('accountsLinks.info_accountLink');
-          res.status(200).json({
-            data:pessoas
-          });
+        const id_user = req.userId;
+        let pessoa = await Pessoa.findById(id_user).populate('permissions.ifo_permission');
+        let perm_admin = pessoa?pessoa.permissions.findIndex((permisao)=>{
+            return permisao.ifo_permission.indice === 1;
+        }):-1;
+        if (perm_admin != -1) {
+            let pessoas = await Pessoa.find()
+            .populate('channels.info_channel')
+            .populate('permissions.ifo_permission')
+            .populate('accountsLinks.info_accountLink');
+            return res.status(200).json({
+                data:pessoas
+            });
+        } else {
+            let pessoas = await Pessoa.find();
+            for (let i = 0; i < pessoas.length; i++) {
+                pessoas[i].ip_user = null;
+                pessoas[i].idTwitch = null;
+                pessoas[i].accessTokenTwitch = null;
+                pessoas[i].refreshTokenTwitch = null;
+                pessoas[i].refreshTokenTwitch = null;
+                pessoas[i].accountsLinks = null;
+                pessoas[i].divisorPoints = null;
+            }
+            return res.status(200).json({
+                data:pessoas
+            });
+        }
     } catch (error) {
           res.status(400).send({
               message:'ERRO ao listar pessoas',
