@@ -80,6 +80,9 @@ const authFromCodePerson = async (req, res) => {
                 pessoa = await Pessoa.findById(id_user).populate('accountsLinks.info_accountLink');
             }else{
                 pessoa = await Pessoa.find({idTwitch:decodedResponse.resp.sub}).populate('accountsLinks.info_accountLink');
+                if (pessoa.length == 0) {
+                    pessoa = await Pessoa.find({nickname:decodedResponse.resp.preferred_username}).populate('accountsLinks.info_accountLink');
+                }
                 pessoa = pessoa.length > 0?pessoa[0]:null;
             }
             // console.log('pessoa: ',pessoa);

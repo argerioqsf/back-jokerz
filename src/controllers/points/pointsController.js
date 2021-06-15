@@ -70,7 +70,11 @@ const addpoints = async(reward)=>{
             redemption_id,
             id_twitch_streamer
         } = reward;
-        let person = await Pessoa.findOne({idTwitch: id_twitch_user}).populate('channel.info_channel');
+        let person = null;
+        person = await Pessoa.findOne({idTwitch: id_twitch_user}).populate('channel.info_channel');
+        if (!person) {
+            person = await Pessoa.findOne({nickname: name_user}).populate('channel.info_channel');
+        }
         let person_streamer = await Pessoa.findOne({idTwitch: id_twitch_streamer}).populate('channel');
         // console.log('person_streamer._id: ',person_streamer._id);
         let channel = person_streamer.channel;
