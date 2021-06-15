@@ -527,7 +527,8 @@ const historyRedeemProduct = async (id_user, id_product, id_owner, id_channel)=>
                     id_user:person._id,
                     tradeLink:person.tradelinkSteam.length > 0?product.tradelinkSteam:null,
                     id_owner:id_owner,
-                    id_channel:id_channel
+                    id_channel:id_channel,
+                    price:product.price
                 }
                 let new_redeem = await RedeemProduct.create(redeem);
                 resolve(new_redeem);

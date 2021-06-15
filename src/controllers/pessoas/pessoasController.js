@@ -40,6 +40,42 @@ const listPersonForType = async (req, res) => {
     }
 };
 
+const editPerson = async (req, res)=>{
+    try {
+        const id_user = req.userId;
+        const id_user_edit = req.params&&req.params.id_user?req.params.id_user:'';
+        let pessoa = await Pessoa.findById(id_user_edit).populate('permissions.ifo_permission');
+        let perm_admin = pessoa.permissions.findIndex((permisao)=>{
+            return permisao.ifo_permission.indice === 1;
+        });
+        if (pessoa) {
+            if (id_user == pessoa._id || perm_admin != -1) {
+                let data = req.body;
+                let resp = await Pessoa.findByIdAndUpdate(id_user_edit,{
+                    ...data
+                });
+                res.status(201).json({
+                    message:'Usuário editado com sucesso!',
+                    data:resp
+                });
+            }else{
+                return res.status(400).json({
+                    message:'Erro ao editar usuário, sem permissão'
+                });
+            }
+        }else{
+            return res.status(400).json({
+                message:'Erro ao editar usuário, usuário não encontrado'
+            });
+        }
+    } catch (error) {
+      return res.status(500).json({
+          message:'Erro ao editar usuario',
+          error:error
+      });
+    }
+}
+
 const listPessoasOn = async (req, res) => {
     try {
         let pessoasOn = await Pessoa.find({'channels.status':{$in:true}}).populate('channels.info_channel').populate('permissions.ifo_permission');
@@ -432,5 +468,6 @@ module.exports = {
     listPersonForType,
     setAccountLink,
     changePointsSyncTwitch,
-    setPersonSyncPointsInitial
+    setPersonSyncPointsInitial,
+    editPerson
 }

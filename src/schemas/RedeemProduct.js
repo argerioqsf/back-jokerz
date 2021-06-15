@@ -17,6 +17,10 @@ const RedeemProduct = new mongoose.Schema({
     product_float:{
 		type: String
     },
+	price:{
+		type: Number,
+		required: true
+	},
     id_user:{
 		type: mongoose.Schema.Types.ObjectId,
 		ref:'Pessoa',

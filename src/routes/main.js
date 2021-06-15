@@ -53,6 +53,7 @@ router.get('/person/status', pessoasController.listPessoasOn);
 router.put('/person/status', authMiddleware, pessoasController.setStatusPessoaCanal);
 router.get('/person/points/zerar', pessoasController.zerarPontosPessoas);
 router.put('/person/acconutLink',authMiddleware, pessoasController.setAccountLink);
+router.put('/person/:id_user',authMiddleware, pessoasController.editPerson);
 
 //canais
 router.get('/channel', authMiddleware,canalController.listCanais);
@@ -60,9 +61,9 @@ router.post('/channel/status', authMiddleware,canalController.statusChannel);
 // router.post('/channel', canalController.registerCanal);
 
 //teste
-router.get('/home',authMiddleware,(req,res)=>{
+router.get('/testeToken',authMiddleware,(req,res)=>{
     res.status(200).json({
-        message:"usuario logado, HOME 2"
+        message:"usuario logado"
     });
 });
 

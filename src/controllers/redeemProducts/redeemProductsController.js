@@ -1,6 +1,7 @@
 
 const RedeemProduct = require('../../schemas/RedeemProduct');
 const dotenv = require('dotenv');
+const Pessoa = require('../../schemas/pessoa');
 dotenv.config();
 // const botController = require('../../controllers/bot/botController');
 
@@ -75,11 +76,20 @@ const changeStatusRedeemProducts = async (req, res)=> {
         const data = req.body;
         let id_redeem = data.id_redeem;
         let status = data.status;
-        let redeem_new = await RedeemProduct.findByIdAndUpdate(id_redeem,{
-            status:status
-        });
+        if (status == "cancelado") {
+            let redeemProduct = await RedeemProduct.findById(id_redeem);
+            let person = await Pessoa.findById(redeemProduct.id_user);
+            person.points = person.points+redeemProduct.price;
+            redeemProduct.status = status;
+            await person.save();
+            await redeemProduct.save();
+        } else {
+            let redeem_new = await RedeemProduct.findByIdAndUpdate(id_redeem,{
+                status:status
+            });
+        }
         res.status(200).json({
-          data:redeem_new
+          data:'atualizadao com sucesso'
         });
 
     } catch (error) {
