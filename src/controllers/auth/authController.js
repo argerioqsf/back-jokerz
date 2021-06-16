@@ -179,7 +179,9 @@ const registerAuthStreamer = async (req, res) => {
       points = 0,
       tradelinkSteam = '',
       permissions,
-      linkTwitch = ''
+      linkTwitch = '',
+      accessTokenStreamElements = null,
+      IdStreamElements = null
     } = req.body;
 
     let data = {
@@ -191,6 +193,8 @@ const registerAuthStreamer = async (req, res) => {
         points:points,
         tradelinkSteam:tradelinkSteam,
         permissions:permissions,
+        accessTokenStreamElements:accessTokenStreamElements,
+        IdStreamElements:IdStreamElements
     }
     try {
         let cad_person = await pessoasController.registerPerson(data);
@@ -205,7 +209,7 @@ const registerAuthStreamer = async (req, res) => {
                         person.channel = cad_channel.data._id;
                         await person.save();
                         cad_person.data.password = undefined;
-                        res.status(cad_person.code).json({
+                        return res.status(cad_person.code).json({
                             message:'Conta de Streamer criada com sucesso!',
                             token:genereteToken({ id:cad_person.data._id }),
                             data:cad_person.data,
@@ -213,29 +217,30 @@ const registerAuthStreamer = async (req, res) => {
                         // let join_bot = await botController.addChannel(cad_channel.data._id);
                         // console.log('join_bot: ',join_bot);
                     } else {
-                        res.status(cad_person.code).json({
-                            message:'Canal não criado ja exist um canal criado no sistema'
-                        });
+                    let deletado = await Pessoa.findByIdAndDelete(data.id_person);
+                    return res.status(cad_person.code).json({
+                        message:'Canal não criado ja exist um canal criado no sistema'
+                    });
                     }
                 }else{
-                    res.status(500).json({
+                    return res.status(500).json({
                         message:cad_channel.message,
                         error:cad_channel.error
                     });
                 }
             }else{
-                res.status(cad_person.code).json({
+                return res.status(cad_person.code).json({
                     message:'Usuário não criada pois ja existe um usuário com este nickname'
                 });
             }
         }else{
-            res.status(500).json({
+            return res.status(500).json({
                 message:cad_person.message,
                 error:cad_person.error
             });
         }
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             message:'Erro ao cadastrar e autenticar o usuário',
             error:error
         });
