@@ -133,9 +133,10 @@ router.get('/twitch/SyncPubsub',authMiddleware, pointsController.changeSyncPubsu
 //AcconutsLink
 router.post('/acconutLink',  accountsLinkController.registerAccountLink);
 router.get('/acconutLink', accountsLinkController.listAccountsLink);
-
-//RedeemPoints
-router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
+//Points
+router.get('/restorePointsStreamElements', authMiddleware, pointsController.restorePointsStreamElements);
+    //RedeemPoints
+    router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
 
 //RedeemProducts
 router.get('/redeemProducts', authMiddleware, redeemProductsController.listRedeemProducts);
