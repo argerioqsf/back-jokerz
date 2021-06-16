@@ -481,7 +481,7 @@ const add_userpoints = async (offset, user_streamer, channel, instance)=>{
                         }
                         let new_person = await pessoasController.registerPerson(data);
                         if (new_person.status && new_person.code == 201) {
-                            console.log('Pessoa nova criada: ',new_person.nickname.toLowerCase());
+                            console.log('Pessoa nova criada: ',new_person.data.nickname.toLowerCase());
                             let dataRedeeem = {
                                 date:new Date(),
                                 amount:new_points,
