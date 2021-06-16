@@ -34,10 +34,10 @@ const listRedeemProducts = async (req, res) => {
             .populate('id_channel')
             .limit(limit * 1)
             .skip((page - 1) * limit)
-            .sort('-date_create')
+            .sort('-_id')
             .exec();
             redeeems_quant = await RedeemProduct.find(find)
-            .sort('-date_create')
+            .sort('-_id')
             .exec();
             redeeems_quant = redeeems_quant.length;
         }else{
@@ -50,7 +50,7 @@ const listRedeemProducts = async (req, res) => {
             .skip((page - 1) * limit)
             .exec();
             redeeems_quant = await RedeemProduct.find(find)
-            .sort('-date_create')
+            .sort('-_id')
             .exec();
             redeeems_quant = redeeems_quant.length;
         }
