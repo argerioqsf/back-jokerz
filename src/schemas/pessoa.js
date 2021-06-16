@@ -17,6 +17,12 @@ const Pessoa = new mongoose.Schema({
 	idTwitch:{
 		type:String
 	},
+	accessTokenStreamElements:{
+		type:String
+	},
+	IdStreamElements:{
+		type:String
+	},
 	accessTokenTwitch:{
 		type:String
 	},
@@ -112,6 +118,10 @@ const Pessoa = new mongoose.Schema({
 		default:false
 	},
 	pointsSyncTwitch:{
+		type: Boolean,
+		default:false
+	},
+	restoreStreamElements:{
 		type: Boolean,
 		default:false
 	},
