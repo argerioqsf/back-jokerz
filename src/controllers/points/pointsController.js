@@ -9,6 +9,9 @@ const pubsubTwitch = require('../../services/pubsubTwitch');
 const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
+let limit = 1000
+let totalusers = 0
+// const credenciais = require('./config');
 // const botController = require('../../controllers/bot/botController');
 
 const activeSyncPointsTwitch = async (req, res) => {
@@ -349,10 +352,161 @@ const changeSyncPubsub = async (req, res)=>{
     }
 }
 
+const restorePointsStreamElements = async(req, res)=>{
+    console.log('req.userId: ',req.userId);
+    try {
+        let id_user = req.userId;
+        const user_streamer = await Pessoa.findById(id_user).populate('channel');
+        if (user_streamer && user_streamer.streamer) {
+            if (user_streamer.accessTokenStreamElements && user_streamer.IdStreamElements) {
+                const instance = axios.create({
+                    baseURL: 'https://api.streamelements.com/',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user_streamer.accessTokenStreamElements}`
+                    }
+                });
+                let channel = user_streamer.channel;
+                if (channel) {
+                    const response = await instance.get(`kappa/v2/points/5d5ff78d8473a0bc7ec84f01/top?limit=1`);
+                    totalusers = parseInt(response.data._total);
+                    console.log('totalusers: ',totalusers);
+                    let count = Math.ceil(totalusers/1000);
+                    let offset = 0;
+                    console.log('count: ',count);
+                    for (let i = 0; i < count; i++) {
+                        let resp = await add_userpoints(offset, user_streamer, channel, instance);
+                        if (!resp) {
+                            return res.status(500).json({
+                                message:'Erro ao fazer restore de postos do streamElements, erro ao listar pontos'
+                            });
+                        }
+                        offset = offset + 1000;
+                    }
+                    user_streamer.restoreStreamElements = true;
+                    await user_streamer.save();
+                    return res.status(200).json({
+                        data:totalusers,
+                        message:'Sucesso no restore de postos do streamElements'
+                    });
+                }else{
+                    return res.status(400).json({
+                        message:'Erro ao fazer restore de postos do streamElements, usuário não possui canal cadastrado'
+                    });
+                }
+            }else{
+                return res.status(400).json({
+                    message:'Erro ao fazer restore de postos do streamElements, credencias do stream elements não cadastradas corretamente'
+                });
+            }
+        }else{
+            return res.status(400).json({
+                message:'Erro ao fazer restore de postos do streamElements, usuário sem permissão'
+            });
+        }
+    } catch (error) {
+        console.log('Error list_userpoints: ', error);
+    }
+}
+
+const add_userpoints = async (offset, user_streamer, channel, instance)=>{
+    return new Promise(async(resolve,reject)=>{
+        try {
+            const response = await instance.get(`kappa/v2/points/${user_streamer.IdStreamElements}/top?offset=${offset}&limit=${limit}`);
+                var totalusers = parseInt(response.data._total);
+                console.log('response.data.users.length: ',response.data.users.length);
+                let count = response.data.users.length;
+                let now = new Date();
+                let users = response.data.users;
+                for(let i = 0; i < count; i++){
+                    let person = await Pessoa.findOne({nickname:users[i].username})
+                    if (person) {
+                        let new_points = users[i].points;
+                        person.points = person.points + new_points;
+                        let index_channel = person.channels.findIndex(channel_=>{
+                            return String(channel_.info_channel) == String(channel._id);
+                        });
+                        if (index_channel != -1 ) {
+                            person.channels[index_channel].points = person.channels[index_channel].points + new_points;
+                            //////////////////////////////////////////////////
+                            person.channels[index_channel].status = true;
+                            await person.save();
+                            console.log('Pessoa atualizada com canal: ',person.nickname);
+                            let dataRedeeem = {
+                                date:new Date(),
+                                amount:new_points,
+                                id_user:person._id,
+                                id_channel:channel._id
+                            }
+                            let redeem = await RedeemPoints.create(dataRedeeem);
+                            // return true;
+                        }else{
+                                console.log('canal nao encontrado no usuario');
+                                //////////////////////////////////////////////////
+                                person.channels = [
+                                    ...person.channels,
+                                    {
+                                        info_channel: channel._id,
+                                        points: new_points,
+                                        status:true
+                                    }
+                                ];
+                                await person.save();
+                                console.log('Pessoa atualizada sem canal: ',person.nickname);
+                                let dataRedeeem = {
+                                    date:new Date(),
+                                    amount:new_points,
+                                    id_user:person._id,
+                                    id_channel:channel._id
+                                }
+                                let redeem = await RedeemPoints.create(dataRedeeem);
+                                // console.log("redeem criado: ",redeem);
+                                // return true;
+                        }
+                    }else{
+                        console.log('Criando pessoa nova');
+                        let new_points = users[i].points;
+                        //////////////////////////////////////////////////
+                        let data = {
+                            nickname:users[i].username,
+                            name:users[i].username,
+                            points:new_points,
+                            channels:[
+                                {
+                                    info_channel: channel._id,
+                                    points: new_points,
+                                    status:true
+                                }
+                            ]
+                        }
+                        let new_person = await pessoasController.registerPerson(data);
+                        if (new_person.status && new_person.code == 201) {
+                            console.log('Pessoa nova criada: ',new_person.nickname);
+                            let dataRedeeem = {
+                                date:new Date(),
+                                amount:new_points,
+                                id_user:new_person.data._id,
+                                id_channel:channel._id
+                            }
+                            let redeem = await RedeemPoints.create(dataRedeeem);
+                        }else{
+                            return resolve(false);
+                        }
+                    }
+                }
+                return resolve(true);
+        } catch (error) {
+            console.log('Error add_userpoints: ', error);
+            return resolve(false);
+        }
+    });
+}
+
 module.exports = {
     activeSyncPointsTwitch,
     addpoints,
     addpointsStreamElements,
     changeStatus,
-    changeSyncPubsub
+    changeSyncPubsub,
+    restorePointsStreamElements
 }
