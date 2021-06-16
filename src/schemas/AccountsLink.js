@@ -19,6 +19,8 @@ const AccountsLink = new mongoose.Schema({
 		default: false
 	}
 })
+//twitch
+//streamelements
 
 
 module.exports = mongoose.model('AccountsLink', AccountsLink)
