@@ -35,7 +35,7 @@ const findCanaisById = async (req, res) => {
 const registerCanal = async (data) => {
   try {
       let channel_exists = await Channel.find({
-        name:data.nickname
+        name:data.nickname.toLowerCase()
       });
       if (channel_exists.length > 0) {
         console.log('canal ja existe:',channel_exists);
@@ -47,7 +47,7 @@ const registerCanal = async (data) => {
         };
       } else {
         let resp = await Channel.create({
-          name:data.nickname,
+          name:data.nickname.toLowerCase(),
           id_person:data.id_person,
           linkTwitch:data.linkTwitch
         });

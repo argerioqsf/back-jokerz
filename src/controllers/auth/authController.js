@@ -81,7 +81,7 @@ const authFromCodePerson = async (req, res) => {
             }else{
                 pessoa = await Pessoa.find({idTwitch:decodedResponse.resp.sub}).populate('accountsLinks.info_accountLink');
                 if (pessoa.length == 0) {
-                    pessoa = await Pessoa.find({nickname:decodedResponse.resp.preferred_username}).populate('accountsLinks.info_accountLink');
+                    pessoa = await Pessoa.find({nickname:decodedResponse.resp.preferred_username.toLowerCase()}).populate('accountsLinks.info_accountLink');
                 }
                 pessoa = pessoa.length > 0?pessoa[0]:null;
             }
@@ -106,7 +106,7 @@ const authFromCodePerson = async (req, res) => {
                             }
                         }
                         pessoa.idTwitch = decodedResponse.resp.sub;
-                        pessoa.nickname = decodedResponse.resp.preferred_username;
+                        pessoa.nickname = decodedResponse.resp.preferred_username.toLowerCase();
                         pessoa.accessTokenTwitch = data.access_token;
                         pessoa.refreshTokenTwitch = data.refresh_token;
                         if (!pessoa.ip_user) {
@@ -134,7 +134,7 @@ const authFromCodePerson = async (req, res) => {
                 const pessoasController = require('../../controllers/pessoas/pessoasController');
                 let createOrUpdate = await pessoasController.registerPerson({
                     idTwitch:decodedResponse.resp.sub,
-                    nickname:decodedResponse.resp.preferred_username,
+                    nickname:decodedResponse.resp.preferred_username.toLowerCase(),
                     name:decodedResponse.resp.preferred_username,
                     accessTokenTwitch:data.access_token,
                     refreshTokenTwitch:data.refresh_token,
@@ -189,7 +189,7 @@ const registerAuthStreamer = async (req, res) => {
         linkTwitch:linkTwitch,
         name:name,
         password:password,
-        nickname:nickname,
+        nickname:nickname.toLowerCase(),
         points:points,
         tradelinkSteam:tradelinkSteam,
         permissions:permissions,
@@ -250,10 +250,10 @@ const registerAuthStreamer = async (req, res) => {
 const loginStreamer = async (req, res) => {
     const { nickname, password } = req.body;
         let data = {
-            name:nickname,
+            name:nickname.toLowerCase(),
         }
     try {
-        let channel = await Channel.findOne({name:nickname}).populate('id_person').populate({
+        let channel = await Channel.findOne({name:nickname.toLowerCase()}).populate('id_person').populate({
             path:'id_person',
             populate: { path: 'permissions.ifo_permission' }
           });;

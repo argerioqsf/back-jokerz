@@ -76,7 +76,7 @@ const addpoints = async(reward)=>{
         let person = null;
         person = await Pessoa.findOne({idTwitch: id_twitch_user}).populate('channel.info_channel');
         if (!person) {
-            person = await Pessoa.findOne({nickname: name_user}).populate('channel.info_channel');
+            person = await Pessoa.findOne({nickname: name_user.toLowerCase()}).populate('channel.info_channel');
         }
         let person_streamer = await Pessoa.findOne({idTwitch: id_twitch_streamer}).populate('channel');
         // console.log('person_streamer._id: ',person_streamer._id);
@@ -185,7 +185,7 @@ const addpoints = async(reward)=>{
                 let new_points = parseInt(cost/parseInt(person_streamer.divisorPoints));
                 //////////////////////////////////////////////////
                 let data = {
-                    nickname:name_user,
+                    nickname:name_user.toLowerCase(),
                     name:name_user,
                     idTwitch:id_twitch_user,
                     points:new_points,
@@ -419,7 +419,7 @@ const add_userpoints = async (offset, user_streamer, channel, instance)=>{
                 let now = new Date();
                 let users = response.data.users;
                 for(let i = 0; i < count; i++){
-                    let person = await Pessoa.findOne({nickname:users[i].username})
+                    let person = await Pessoa.findOne({nickname:users[i].username.toLowerCase()})
                     if (person) {
                         let new_points = users[i].points;
                         person.points = person.points + new_points;
@@ -431,7 +431,7 @@ const add_userpoints = async (offset, user_streamer, channel, instance)=>{
                             //////////////////////////////////////////////////
                             person.channels[index_channel].status = true;
                             await person.save();
-                            console.log('Pessoa atualizada com canal: ',person.nickname);
+                            console.log('Pessoa atualizada com canal: ',person.nickname.toLowerCase());
                             let dataRedeeem = {
                                 date:new Date(),
                                 amount:new_points,
@@ -452,7 +452,7 @@ const add_userpoints = async (offset, user_streamer, channel, instance)=>{
                                     }
                                 ];
                                 await person.save();
-                                console.log('Pessoa atualizada sem canal: ',person.nickname);
+                                console.log('Pessoa atualizada sem canal: ',person.nickname.toLowerCase());
                                 let dataRedeeem = {
                                     date:new Date(),
                                     amount:new_points,
@@ -468,7 +468,7 @@ const add_userpoints = async (offset, user_streamer, channel, instance)=>{
                         let new_points = users[i].points;
                         //////////////////////////////////////////////////
                         let data = {
-                            nickname:users[i].username,
+                            nickname:users[i].username.toLowerCase(),
                             name:users[i].username,
                             points:new_points,
                             channels:[
@@ -481,7 +481,7 @@ const add_userpoints = async (offset, user_streamer, channel, instance)=>{
                         }
                         let new_person = await pessoasController.registerPerson(data);
                         if (new_person.status && new_person.code == 201) {
-                            console.log('Pessoa nova criada: ',new_person.nickname);
+                            console.log('Pessoa nova criada: ',new_person.nickname.toLowerCase());
                             let dataRedeeem = {
                                 date:new Date(),
                                 amount:new_points,
