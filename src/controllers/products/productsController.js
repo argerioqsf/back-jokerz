@@ -16,10 +16,10 @@ const listProducts = async (req, res) => {
             products = await Products.find(find)
             .limit(limit * 1)
             .skip((page - 1) * limit)
-            .sort('-date_create')
+            .sort('-_id')
             .exec();
             products_quant = await Products.find(find)
-            .sort('-date_create')
+            .sort('-_id')
             .exec();
             products_quant = products_quant.length;
         }else{
@@ -28,7 +28,7 @@ const listProducts = async (req, res) => {
             .skip((page - 1) * limit)
             .exec();
             products_quant = await Products.find(find)
-            .sort('-date_create')
+            .sort('-_id')
             .exec();
             products_quant = products_quant.length;
         }
