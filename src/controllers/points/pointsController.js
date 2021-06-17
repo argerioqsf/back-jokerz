@@ -464,7 +464,9 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                 amount:new_points,
                                 id_user:person._id,
                                 id_channel:channel._id,
-                                status:'entregue'
+                                status:'entregue',
+                                reward_id:'streamelements',
+                                redemption_id:new Date()
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
                             // return true;
@@ -486,7 +488,9 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                     amount:new_points,
                                     id_user:person._id,
                                     id_channel:channel._id,
-                                    status:'entregue'
+                                    status:'entregue',
+                                    reward_id:'streamelements',
+                                    redemption_id:new Date()
                                 }
                                 let redeem = await RedeemPoints.create(dataRedeeem);
                                 // console.log("redeem criado: ",redeem);
@@ -516,7 +520,9 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                 amount:new_points,
                                 id_user:new_person.data._id,
                                 id_channel:channel._id,
-                                status:'entregue'
+                                status:'entregue',
+                                reward_id:'streamelements',
+                                redemption_id:new Date()
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
                         }else{
