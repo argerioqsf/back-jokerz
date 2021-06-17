@@ -1,6 +1,6 @@
 const mongoose = require('../configs/database/connectMongo');
 
-const Redemptions = new mongoose.Schema({
+const Rewards = new mongoose.Schema({
 	date: {
 		type: Date,
 		required: true
@@ -24,4 +24,4 @@ const Redemptions = new mongoose.Schema({
 })
 
 
-module.exports = mongoose.model('Redemptions', Redemptions)
+module.exports = mongoose.model('Rewards', Rewards)
