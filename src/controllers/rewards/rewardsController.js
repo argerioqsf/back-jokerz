@@ -2,12 +2,15 @@
 const Rewards = require('../../schemas/Rewards');
 const dotenv = require('dotenv');
 const Channel = require('../../schemas/channel');
+const rewardsController = require('../rewards/rewardsController');
 dotenv.config();
 const axios = require('axios');
 const Pessoa = require('../../schemas/pessoa');
 const authController = require('../../controllers/auth/authController');
+const { deleteRewardGeneral, listRedemptions } = require('../../services/twitch');
+const { changeStatus } = require('../points/pointsController');
 
-const listRewards = async (req, res) => {
+exports.listRewards = async function (req, res){
     const { page = 1, limit = 12, last = false, status = null } = req.query;
     console.log('req.userId: ',req.userId);
     const id_user = req.userId;
@@ -69,7 +72,7 @@ const listRewards = async (req, res) => {
     }
 };
 
-const createReward = async (req, res)=>{
+exports.createReward = async function (req, res){
     try {
         const body = req.body;
         const id_user = req.userId;
@@ -87,7 +90,8 @@ const createReward = async (req, res)=>{
                 });
                 let data_reward = {
                     title:body.title?body.title:null,
-                    cost:body.cost?body.cost:null
+                    cost:body.cost?body.cost:null,
+                    is_enabled:body.is_enabled?body.is_enabled:false
                 }
                 const response = await instance.post(`custom_rewards?broadcaster_id=${user_streamer.idTwitch}`,data_reward);
                 let data = response.data;
@@ -99,7 +103,7 @@ const createReward = async (req, res)=>{
                     cost:data_reward.cost,
                     id_channel:user_streamer.channel
                 });
-                return res.status(200).json({
+                return res.status(201).json({
                   data:new_reward,
                   reward:data,
                   message:"Reward cadastrado com sucesso"
@@ -128,7 +132,7 @@ const createReward = async (req, res)=>{
                         });
                     } else {
                         req.refresh = true;
-                        createReward(req, res);
+                        rewardsController.createReward(req, res);
                     }
                 }else{
                     return res.status(400).send({
@@ -154,108 +158,45 @@ const createReward = async (req, res)=>{
     }
 }
 
-const deleteReward = async (req, res) =>{
+exports.deleteReward = async function(req, res){
     try {
         const id_user = req.userId;
         const id_reward = req.params.id;
-        let resp = await deleteRewardGeneral(id_reward,id_user);
-        if (resp) {
-            res.status(200).json({
-              message:'Reward deletado com sucesso'
-            });
+        let user_streamer = await Pessoa.findById(id_user);
+        if (user_streamer && user_streamer.streamer) {
+            let redemptions = await listRedemptions(id_reward,user_streamer._id,'UNFULFILLED');
+            if (redemptions &&  redemptions.data && redemptions.data.length > 0) {
+                for (let i = 0; i < redemptions.data.length; i++) {
+                    let redemption = redemptions.data[i];
+                    let cancel_redemption = await changeStatus(user_streamer._id, 'CANCELED', user_streamer.idTwitch, redemption.reward.id, redemption.id,user_streamer.accessTokenTwitch);
+                    if (cancel_redemption) {
+                        console.log("redemption cancelada");
+                    } else {
+                        console.log("redemption não cancelada.");
+                        return res.status(400).send({
+                            message:'Erro ao deletar rewards, erro ao cancelar retirada na Twitch'
+                        });
+                    }
+                }
+            }
+            let resp = await deleteRewardGeneral(id_reward,id_user);
+            if (resp) {
+                return res.status(200).json({
+                  message:'Reward deletado com sucesso'
+                });
+            }else{
+                return res.status(400).send({
+                    message:'Erro ao deletar rewards, erro ao deletar no sistema'
+                });
+            }
         }else{
-            res.status(400).send({
-                message:'Erro ao deletar rewards, erro ao deletar no sistema'
+            return res.status(400).json({
+                message:'Erro ao deletar reward: usuario não existe ou não tem permissão'
             });
         }
     } catch (error) {
-        res.status(400).send({
+        return res.status(400).send({
             message:'Erro ao deletar rewards, '+error.message
         });
     }
-}
-
-const deleteRewardGeneral = async (id_reward, id_user, refresh = false)=>{
-    return new Promise(async(resolve,request)=>{
-        try {
-            let user_streamer = await Pessoa.findById(id_user);
-            if (user_streamer) {
-                const instance = axios.create({
-                    baseURL: 'https://api.twitch.tv/helix/channel_points/',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user_streamer.accessTokenTwitch}`,
-                        'Client-Id':process.env.CLIENT_ID
-                    }
-                });
-                let perm_admin = user_streamer?user_streamer.permissions.findIndex((permisao)=>{
-                    return permisao.ifo_permission.indice === 1;
-                }):-1;
-                let reward = await Rewards.findById(id_reward).populate('id_channel');
-                if (reward) {
-                    if (perm_admin != -1) {
-                        const response = await instance.delete(`custom_rewards?broadcaster_id=${user_streamer.idTwitch}&id=${reward.id_reward}`);
-                        await reward.remove();
-                        resolve(true);
-                    }else{
-                        console.log("reward.id_channel:",reward.id_channel.id_person);
-                        console.log("user_streamer._id:",user_streamer._id);
-                        if (String(reward.id_channel.id_person) == String(user_streamer._id)) {
-                            const response = await instance.delete(`custom_rewards?broadcaster_id=${user_streamer.idTwitch}&id=${reward.id_reward}`);
-                            await reward.remove();
-                            resolve(true);
-                        }else{
-                            console.log('Erro ao deletar rewards, sem permissão');
-                            resolve(false);
-                        }
-                    }
-                }else{
-                    console.log('Erro ao deletar rewards, reward não encontrado');
-                    resolve(false);
-                }
-            } else {
-                console.log('Erro ao deletar rewards, usuário não encontrado');
-                resolve(false);
-            }
-        } catch (error) {
-            if (error.response) {
-                // console.log('error response: ',error.response);
-                console.log('error response status: ',error.response.status);
-                if (error.response.status == 401) {
-                    let resp = await authController.refreshToken(id_user);
-                    if (resp) {
-                        if ( refresh ) {
-                            resolve(false);
-                        } else {
-                            let resp_refresh = await deleteRewardGeneral(id_reward, id_user, true);
-                            if (resp_refresh) {
-                                resolve(true);
-                            }else{
-                                resolve(false);
-                            }
-                        }
-                    }else{
-                        resolve(false);
-                    }
-                }else{
-                    resolve(false);
-                }
-            } else if (error.request) {
-                console.log('error request: ',error.message);
-                resolve(false);
-            } else {
-                console.log('error desc: ',error.message);
-                resolve(false);
-            }
-
-            console.log('Erro ao deletar rewards');
-            resolve(false);
-        }
-    });
-}
-
-module.exports = {
-    listRewards,
-    createReward,
-    deleteReward
 }
