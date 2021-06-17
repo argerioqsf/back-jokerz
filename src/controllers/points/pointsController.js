@@ -10,6 +10,7 @@ const pubsubTwitch = require('../../services/pubsubTwitch');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const Rewards = require('../../schemas/Rewards');
+const { v4: uuidv4 } = require('uuid');
 dotenv.config();
 let limit = 1000
 let totalusers = 0
@@ -466,7 +467,7 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                 id_channel:channel._id,
                                 status:'entregue',
                                 reward_id:'streamelements',
-                                redemption_id:new Date()
+                                redemption_id:uuidv4()
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
                             // return true;
@@ -490,7 +491,7 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                     id_channel:channel._id,
                                     status:'entregue',
                                     reward_id:'streamelements',
-                                    redemption_id:new Date()
+                                    redemption_id:uuidv4()
                                 }
                                 let redeem = await RedeemPoints.create(dataRedeeem);
                                 // console.log("redeem criado: ",redeem);
@@ -522,7 +523,7 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                 id_channel:channel._id,
                                 status:'entregue',
                                 reward_id:'streamelements',
-                                redemption_id:new Date()
+                                redemption_id:uuidv4()
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
                         }else{
