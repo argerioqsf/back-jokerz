@@ -100,7 +100,6 @@ const changeStatusRedeemProducts = async (req, res)=> {
     }
 }
 
-
 module.exports = {
     listRedeemProducts,
     changeStatusRedeemProducts

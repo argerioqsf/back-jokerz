@@ -13,6 +13,7 @@ const pointsController = require('../controllers/points/pointsController');
 const accountsLinkController = require('../controllers/accountsLink/accountsLinkController');
 const redeeemPointsController = require('../controllers/redeeemPoints/redeeemPointsController');
 const redeemProductsController = require('../controllers/redeemProducts/redeemProductsController');
+const rewardsController = require('../controllers/rewards/rewardsController');
 const authMiddleware = require('../middlewares/auth');
 
 //multer
@@ -141,5 +142,10 @@ router.get('/restorePointsStreamElements', authMiddleware, pointsController.rest
 //RedeemProducts
 router.get('/redeemProducts', authMiddleware, redeemProductsController.listRedeemProducts);
 router.put('/redeemProducts', authMiddleware, redeemProductsController.changeStatusRedeemProducts);
+
+//Rewards
+router.get('/rewards', authMiddleware, rewardsController.listRewards);
+router.post('/rewards', authMiddleware, rewardsController.createReward);
+router.delete('/rewards/:id', authMiddleware, rewardsController.deleteReward);
 
 module.exports = router;
