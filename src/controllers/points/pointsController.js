@@ -402,7 +402,7 @@ exports.restorePointsStreamElements = async function(req, res){
                     let offset = 0;
                     console.log('count: ',count);
                     for (let i = 0; i < count; i++) {
-                        let resp = await add_userpoints(offset, user_streamer, channel, instance);
+                        let resp = await pointsController.add_userpoints(offset, user_streamer, channel, instance);
                         if (!resp) {
                             return res.status(500).json({
                                 message:'Erro ao fazer restore de postos do streamElements, erro ao listar pontos'
