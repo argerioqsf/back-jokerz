@@ -22,9 +22,17 @@ const RedeemPoints = new mongoose.Schema({
     status:{
 		type: String,
 		default:'pendente'
-    }
-	//valido
+    },
+	//pendente
+	//entregue
 	//cancelado
+	reward_id:{
+		type: String
+	},
+	redemption_id:{
+		type: String,
+		unique:true
+	}
 })
 
 
