@@ -138,6 +138,7 @@ router.get('/acconutLink', accountsLinkController.listAccountsLink);
 router.get('/restorePointsStreamElements', authMiddleware, pointsController.restorePointsStreamElements);
     //RedeemPoints
     router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
+    router.get('/redeemPoints/register/pendentes', authMiddleware, redeeemPointsController.registerRedeemPotionsPendentes);
 
 //RedeemProducts
 router.get('/redeemProducts', authMiddleware, redeemProductsController.listRedeemProducts);
