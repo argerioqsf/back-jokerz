@@ -87,7 +87,7 @@ const registerProduct = async (req, res) => {
     data.date_create = new Date();
     let files = req.files;
     let image_product = files.filter((file)=>{return file.fieldname == "imageurl";});
-    data.imagepath = image_product.length > 0?process.env.URL_SERVER+"/"+image_product[0].path:"";
+    data.imagepath = image_product.length > 0?image_product[0].path:"";
     data.stickersinfo = data.stickersinfo?JSON.parse(data.stickersinfo):[];
     let quant_stickers = data.quant_stickers?parseInt(data.quant_stickers):0;
     data.quant_stickers = quant_stickers;
@@ -639,7 +639,7 @@ const redeemProduct = async (req, res)=>{
                                 </html>`,
                                 attachments: [{
                                     filename: 'image_product.png',
-                                    path: product.imageurl?product.imageurl:product.imagepath?(product.imagepath):'https://cdn.neemo.com.br/uploads/settings_webdelivery/logo/3136/image-not-found.jpg',
+                                    path: product.imageurl?product.imageurl:product.imagepath?(process.env.URL_SERVER+"/"+product.imagepath):'https://cdn.neemo.com.br/uploads/settings_webdelivery/logo/3136/image-not-found.jpg',
                                     cid: 'image_product_email' //same cid value as in the html img src
                                 }]
                             };
