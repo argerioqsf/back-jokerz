@@ -5,6 +5,19 @@ let fs = require('fs');
 const Pessoa = require('../../schemas/pessoa');
 const RedeemProduct = require('../../schemas/RedeemProduct');
 const Channel = require('../../schemas/channel');
+const nodemailer = require('nodemailer');
+var remetenteEmail = nodemailer.createTransport({
+    host: '',
+    service: 'Gmail',
+    port: 587,
+    secure: true,
+    auth:{
+        user: 'notificadordocirco@gmail.com',
+        pass: 'jokerz2019' 
+    }
+});
+const dotenv = require('dotenv');
+dotenv.config();
 
 const listProducts = async (req, res) => {
     const { page = 1, limit = 12, last = false, status = null } = req.query;
@@ -74,7 +87,7 @@ const registerProduct = async (req, res) => {
     data.date_create = new Date();
     let files = req.files;
     let image_product = files.filter((file)=>{return file.fieldname == "imageurl";});
-    data.imagepath = image_product.length > 0?image_product[0].path:"";
+    data.imagepath = image_product.length > 0?process.env.URL_SERVER+"/"+image_product[0].path:"";
     data.stickersinfo = data.stickersinfo?JSON.parse(data.stickersinfo):[];
     let quant_stickers = data.quant_stickers?parseInt(data.quant_stickers):0;
     data.quant_stickers = quant_stickers;
@@ -550,18 +563,86 @@ const redeemProduct = async (req, res)=>{
         let id_product = data.id_product?data.id_product:'';
         console.log('id_product: ',id_product);
         let product = await Products.findById(id_product);
+        console.log('product: ',product);
         let person = await Pessoa.findById(id_user);
         if (product) {
             let id_owner = product.id_owner?product.id_owner:'';
             let channel = await Channel.findOne({id_person:id_owner});
             console.log('channel: ',channel);
             console.log('person.tradelinkSteam: ',person.tradelinkSteam);
-            let id_channel = channel._id?channel._id:'';
+            let id_channel = channel&&channel._id?channel._id:'';
             console.log('id_channel: ',id_channel);
             if (String(id_channel).length > 0) {
                 if (person.tradelinkSteam && person.tradelinkSteam.length > 0) {
                     if (product.status == 'emEstoque') {
                         if (person.points >= product.price) {
+                            var emailASerEnviado = {
+                                from: 'notificadordocirco@gmail.com',
+                                to: 'jokerzcsgo@gmail.com',
+                                subject: `O item ${product.name} foi retirado na loja`,
+                                text: 'For clients with plaintext support only',
+                                html:`<!doctype html>
+                                <html ⚡4email>
+                                    <head>
+                                        <meta charset="utf-8">
+                                        <style>
+                                            .content-email{
+                                                border: 2px solid black;
+                                                background-color: #05060D;
+                                                color:#fff !important;
+                                                font-family: Arial, Helvetica, sans-serif;
+                                                display:block;
+                                                text-align: center;
+                                            }
+                                            .info-product{
+                                                margin: 0;
+                                            }
+                                            .content-image{
+                                                background-color:brown;
+                                                border-radius:12px;
+                                                border-bottom: 2px solid #fff;
+                                                border-bottom-left-radius:0px;
+                                                border-bottom-right-radius:0px;
+                                                padding:15px;
+                                                width:300px;
+                                                height:300px;
+                                                margin: 0 auto;
+                                                margin-bottom: 20px;
+                                            }
+                                            .content-info{
+                                                color:#fff !important;
+                                                display:block  !important;
+                                                margin: 0 auto;
+                                            }
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <div class="content-email">
+                                            <h1><b>Um item foi retirado na loja:</b></h1><br>
+                                            <div class="content-image">
+                                                <img 
+                                                style="
+                                                max-width: 300px;
+                                                max-height: 300px;"
+                                                src="cid:image_product_email"
+                                                alt="Produto">
+                                            </div>
+                                            <div class="content-info">
+                                                <p class="info-product"><b>Nome do produto:</b> ${product.name?product.name:'Não cadastrado'} </p><br>
+                                                <p class="info-product"><b>Float do produto:</b> ${product.floatvalue?product.floatvalue:'Não cadastrado'} </p><br>
+                                                <p class="info-product"><b>Desgaste do produto:</b> ${product.exterior?product.exterior:'Não cadastrado'} </p><br>
+                                                <p class="info-product"><b>Trade link do usuário:</b> ${person.tradelinkSteam?person.tradelinkSteam:'Não cadastrado'} </p><br>
+                                                <p class="info-product"><b>Valor do produto:</b> ${product.price?product.price:'Não cadastrado'} </p><br>
+                                            </div>
+                                        </div>
+                                    </body>
+                                </html>`,
+                                attachments: [{
+                                    filename: 'image_product.png',
+                                    path: product.imageurl?product.imageurl:product.imagepath?(product.imagepath):'https://cdn.neemo.com.br/uploads/settings_webdelivery/logo/3136/image-not-found.jpg',
+                                    cid: 'image_product_email' //same cid value as in the html img src
+                                }]
+                            };
                             if (product.amount > 1) {
                                 let product_up = await Products.findByIdAndUpdate(id_product,{
                                     amount: product.amount -1
@@ -571,6 +652,12 @@ const redeemProduct = async (req, res)=>{
                                 });
                                 let resp = await historyRedeemProduct(id_user, id_product, id_owner, id_channel);
                                 if (resp) {
+                                    let respEmail = await remetenteEmail.sendMail(emailASerEnviado)
+                                    if (respEmail) {
+                                        console.log('Email enviado com sucesso.');
+                                    } else {
+                                        console.log('Email não enviado.');
+                                    }
                                     return res.status(200).json({
                                       data:resp,
                                       message:"Produto resgatado com sucesso"
@@ -595,6 +682,12 @@ const redeemProduct = async (req, res)=>{
                                     });
                                     let resp = await historyRedeemProduct(id_user, id_product, id_owner, id_channel);
                                     if (resp) {
+                                        let respEmail = await remetenteEmail.sendMail(emailASerEnviado)
+                                        if (respEmail) {
+                                            console.log('Email enviado com sucesso.');
+                                        } else {
+                                            console.log('Email não enviado.');
+                                        }
                                         return res.status(200).json({
                                           data:resp,
                                           message:"Produto resgatado com sucesso"
@@ -641,7 +734,7 @@ const redeemProduct = async (req, res)=>{
         }
     } catch (error) {
         return res.status(500).send({
-            message:'Erro ao resgatar produto',
+            message:'Erro ao resgatar produto: '+error.message,
             error:error
         });
     }
