@@ -611,12 +611,23 @@ const redeemProduct = async (req, res)=>{
                                             }
                                             .content-info{
                                                 color:#fff !important;
-                                                display:block  !important;
+                                                display:block;
                                                 margin: 0 auto;
                                             }
                                             .containerButton{
                                                 padding: 10px;
+                                                background-color: #DAA520;
+                                                width: 150px;
+                                                display:block  !important;
+                                                margin: 0 auto;
+                                                margin-bottom: 20px;
+                                                border-radius: 10px;
                                             }
+                                            a:link 
+                                            { 
+                                            text-decoration:none; 
+                                                color: #000 !important;
+                                            } 
                                         </style>
                                     </head>
                                     <body>
@@ -631,7 +642,7 @@ const redeemProduct = async (req, res)=>{
                                                 alt="Produto">
                                             </div>
                                             <div class="containerButton">
-                                                <a class="buttonEntrega" href="process.env.URL_SERVER+"/dashboard/resgateProdutosPendentes""  ></a>
+                                                <a class="buttonEntrega" href="process.env.URL_SERVER+"/dashboard/resgateProdutosPendentes""  >Entrega produto</a>
                                             </div>
                                             <div class="content-info">
                                                 <p class="info-product"><b>Nome do produto:</b> ${product.name?product.name:'Não cadastrado'} </p><br>
