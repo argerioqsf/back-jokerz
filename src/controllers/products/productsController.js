@@ -642,7 +642,7 @@ const redeemProduct = async (req, res)=>{
                                                 alt="Produto">
                                             </div>
                                             <div class="containerButton">
-                                                <a class="buttonEntrega" href="${process.env.URL_SERVER}/dashboard/resgateProdutosPendentes""  >Entrega produto</a>
+                                                <a class="buttonEntrega" href="${process.env.URL_SITE}/dashboard/resgateProdutosPendentes""  >Entrega produto</a>
                                             </div>
                                             <div class="content-info">
                                                 <p class="info-product"><b>Nome do produto:</b> ${product.name?product.name:'Não cadastrado'} </p><br>
