@@ -604,8 +604,8 @@ const redeemProduct = async (req, res)=>{
                                                 border-bottom-left-radius:0px;
                                                 border-bottom-right-radius:0px;
                                                 padding:15px;
-                                                width:300px;
-                                                height:300px;
+                                                width:10vw;
+                                                /* height:10vw; */
                                                 margin: 0 auto;
                                                 margin-bottom: 20px;
                                             }
@@ -613,6 +613,9 @@ const redeemProduct = async (req, res)=>{
                                                 color:#fff !important;
                                                 display:block  !important;
                                                 margin: 0 auto;
+                                            }
+                                            .containerButton{
+                                                padding: 10px;
                                             }
                                         </style>
                                     </head>
@@ -622,10 +625,13 @@ const redeemProduct = async (req, res)=>{
                                             <div class="content-image">
                                                 <img 
                                                 style="
-                                                max-width: 300px;
-                                                max-height: 300px;"
+                                                max-width: 100%;
+                                                max-height: 100%; margin: 0 auto;"
                                                 src="cid:image_product_email"
                                                 alt="Produto">
+                                            </div>
+                                            <div class="containerButton">
+                                                <a class="buttonEntrega" href="process.env.URL_SERVER+"/dashboard/resgateProdutosPendentes""  ></a>
                                             </div>
                                             <div class="content-info">
                                                 <p class="info-product"><b>Nome do produto:</b> ${product.name?product.name:'Não cadastrado'} </p><br>
