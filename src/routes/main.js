@@ -87,7 +87,7 @@ router.get('/auth/url-twitch',authController.getUrlTwitch);
 router.get('/auth/url-twitch-linkedAccount',authController.getUrlTwitchLinkedAccount);
 router.get('/auth/twitch_person',authController.authFromCodePerson);
 router.post('/auth/login_streamer',authController.loginStreamer);
-router.post('/auth/cadastro_streamer',authController.registerAuthStreamer);
+router.post('/auth/cadastro_streamer', authMiddleware, authController.registerAuthStreamer);
 
 //permissões
 router.post('/adm/permissions',permissionControler.registerPermission);
@@ -140,7 +140,7 @@ router.get('/restorePointsStreamElements', authMiddleware, pointsController.rest
     router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
     router.get('/redeemPoints/register/pendentes', authMiddleware, redeeemPointsController.registerRedeemPotionsPendentes);
 router.put('/points/:id_channel/:points/roleta', authMiddleware, pointsController.roletaPoints);
-router.put('/points/:id_user/:points/add', authMiddleware, pointsController.addpointsManual);
+router.put('/points/:nickname/:points/add', authMiddleware, pointsController.addpointsManual);
 
 
 //RedeemProducts

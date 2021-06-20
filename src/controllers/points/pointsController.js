@@ -311,13 +311,13 @@ exports.roletaPoints = async function(req, res){
 exports.addpointsManual = async function(req, res) {
     try {
         const points = req.params?parseInt(req.params.points):null;
-        const id_user = req.params?req.params.id_user:'';
+        const nickname = req.params?req.params.nickname:'';
         const id_streamer = req.userId;
         console.log("points: ",points);
-        console.log("userId: ",id_user);
+        console.log("nickname: ",nickname);
         console.log("id_streamer: ",id_streamer);
         let user_streamer = await Pessoa.findById(id_streamer).populate('permissions.ifo_permission');
-        let person = await Pessoa.findById(id_user);
+        let person = await Pessoa.findOne({nickname:nickname});
         if (user_streamer) {
             if (person) {
                 let perm_streamer = user_streamer.permissions.findIndex((permisao)=>{
@@ -363,7 +363,7 @@ exports.addpointsManual = async function(req, res) {
                         person.channels = [
                             ...person.channels,
                             {
-                                info_channel: channel._id,
+                                info_channel: user_streamer.channel,
                                 points: (points),
                                 status:true
                             }
@@ -390,7 +390,7 @@ exports.addpointsManual = async function(req, res) {
                 }
             } else {
                 return res.status(400).json({
-                    message:'Erro ao adicionar pontos: usuário não encontrado'
+                    message:'Erro ao adicionar pontos: nickname não encontrado'
                 });
             }
         } else {
