@@ -91,7 +91,7 @@ exports.listRedemptions = async function(id_reward, id_streamer, status = 'UNFUL
 
     return new Promise(async(resolve,request)=>{
         try {
-            let user_streamer = await Pessoa.findById(id_streamer);
+            let user_streamer = await Pessoa.findById(id_streamer).populate('permissions.ifo_permission');
             if (user_streamer && user_streamer.streamer) {
                 const instance = axios.create({
                     baseURL: 'https://api.twitch.tv/helix/channel_points/',

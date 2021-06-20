@@ -17,6 +17,10 @@ const AccountsLink = new mongoose.Schema({
 	statusPubSub:{
 		type: Boolean,
 		default: false
+	},
+	probability_roulette:{
+		type:Number,
+		default:45
 	}
 })
 //twitch

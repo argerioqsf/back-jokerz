@@ -11,6 +11,9 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const Rewards = require('../../schemas/Rewards');
 const { v4: uuidv4 } = require('uuid');
+const { percentageChance } = require('../../services/roleta');
+const AccountsLink = require('../../schemas/AccountsLink');
+const Channel = require('../../schemas/channel');
 dotenv.config();
 let limit = 1000
 let totalusers = 0
@@ -229,6 +232,177 @@ exports.addpoints = async function(reward){
         } else {
         console.log("error addpoints: ", error.message);
         }
+    }
+}
+
+exports.roletaPoints = async function(req, res){
+    try {
+        const points = req.params?parseInt(req.params.points):null;
+        const id_channel = req.params?req.params.id_channel:'';
+        const id_user = req.userId;
+        console.log("points: ",points);
+        console.log("userId: ",id_user);
+        let person = await Pessoa.findById(id_user);
+        let channel = await Channel.findById(id_channel);
+        if (channel) {
+            console.log("channel.probability_roulette: ",channel.probability_roulette);
+            if (person) {
+                console.log("person.points: ",person.points);
+                if (points && person.points >= points) {
+                    if (points >= 10) {
+                        console.log("Tem pontos");
+                        let probability_yes = channel.probability_roulette > 100?100:channel.probability_roulette < 0?0:channel.probability_roulette;
+                        let probability_no = 100 - probability_yes;
+                        let roleta = percentageChance(['nao', 'sim'], [probability_no, probability_yes]);
+                        console.log("probability_yes: ",probability_yes);
+                        console.log("probability_no: ",probability_no);
+                        let new_points = 0;
+                        if (roleta == 'nao') {
+                            let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points - points});
+                            new_points = - points;
+                        }
+                        if (roleta == 'sim') {
+                            let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points + points});
+                            new_points = points;
+                        }
+                        let dataRedeeem = {
+                            date:new Date(),
+                            amount:(new_points),
+                            id_user:person._id,
+                            id_channel:channel._id,
+                            status:'entregue',
+                            type:'roleta',
+                            redemption_id:uuidv4()
+                        }
+                        let redeem = await RedeemPoints.create(dataRedeeem);
+                        return res.status(201).json({
+                            message:'Roleta acionada com sucesso',
+                            data:new_points
+                        });
+                    }else{
+                        return res.status(400).json({
+                            message:'Erro ao utilizar a roleta: apostas permitidas apartir de 10 pontos'
+                        });
+                    }
+                }else{
+                    console.log("Não tem pontos");
+                    return res.status(400).json({
+                        message:'Erro ao utilizar a roleta: pontos insuficientes'
+                    });
+                }
+            } else {
+                return res.status(400).json({
+                    message:'Erro ao utilizar a roleta: usuário não encontrado'
+                });
+            }
+        } else {
+            return res.status(400).json({
+                message:'Erro ao utilizar a roleta: Canal não encontrado'
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            error:error,
+            message:'Erro ao utilizar a roleta: '+error.message
+        });
+    }
+}
+
+exports.addpointsManual = async function(req, res) {
+    try {
+        const points = req.params?parseInt(req.params.points):null;
+        const id_user = req.params?req.params.id_user:'';
+        const id_streamer = req.userId;
+        console.log("points: ",points);
+        console.log("userId: ",id_user);
+        console.log("id_streamer: ",id_streamer);
+        let user_streamer = await Pessoa.findById(id_streamer).populate('permissions.ifo_permission');
+        let person = await Pessoa.findById(id_user);
+        if (user_streamer) {
+            if (person) {
+                let perm_streamer = user_streamer.permissions.findIndex((permisao)=>{
+                    return permisao.ifo_permission.indice === 2;
+                });
+                console.log("perm_streamer: ",perm_streamer);
+                console.log("user_streamer.streamer: ",user_streamer.streamer);
+                if (perm_streamer != -1 && user_streamer.streamer) {
+                    person.points = person.points + (points);
+                    let index_channel = person.channels.findIndex(channel_=>{
+                        return String(channel_.info_channel) == String(user_streamer.channel);
+                    });
+                    if (index_channel != -1) {
+                        console.log('canal encontrado no usuario');
+                        if (person.type_account == 'secondary') {
+                            let person_primary = await Pessoa.findById(person.primary_account_ref);
+                            person_primary.points = person_primary.points + (points);
+                            await person_primary.save();
+                        }
+                        person.channels[index_channel].points = person.channels[index_channel].points + (points);
+                        person.channels[index_channel].status = true;
+                        await person.save();
+                        let dataRedeeem = {
+                            date:new Date(),
+                            amount:(points),
+                            id_user:person._id,
+                            id_channel:user_streamer.channel,
+                            status:'entregue',
+                            type:'adicionado',
+                            redemption_id:uuidv4()
+                        }
+                        let redeem = await RedeemPoints.create(dataRedeeem);
+                        return res.status(201).json({
+                            message:'Pontos adicionados com sucesso ao usuario '+person.nickname
+                        });
+                    } else {
+                        console.log('canal nao encontrado no usuario');
+                        if (person.type_account == 'secondary') {
+                            let person_primary = await Pessoa.findById(person.primary_account_ref);
+                            person_primary.points = person_primary.points + (points);
+                            await person_primary.save();
+                        }
+                        person.channels = [
+                            ...person.channels,
+                            {
+                                info_channel: channel._id,
+                                points: (points),
+                                status:true
+                            }
+                        ];
+                        await person.save();
+                        let dataRedeeem = {
+                            date:new Date(),
+                            amount:(points),
+                            id_user:person._id,
+                            id_channel:user_streamer.channel,
+                            status:'entregue',
+                            type:'adicionado',
+                            redemption_id:uuidv4()
+                        }
+                        let redeem = await RedeemPoints.create(dataRedeeem);
+                        return res.status(201).json({
+                            message:'Pontos adicionados com sucesso ao usuario '+person.nickname
+                        });
+                    }
+                } else {
+                    return res.status(500).json({
+                        message:'Erro ao adicionar pontos: sem permissão'
+                    });
+                }
+            } else {
+                return res.status(400).json({
+                    message:'Erro ao adicionar pontos: usuário não encontrado'
+                });
+            }
+        } else {
+            return res.status(400).json({
+                message:'Erro ao adicionar pontos: streamer não encontrado'
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            error:error,
+            message:'Erro ao adicionar pontos: '+error.message
+        });
     }
 }
 

@@ -32,7 +32,14 @@ const RedeemPoints = new mongoose.Schema({
 	redemption_id:{
 		type: String,
 		unique:true
+	},
+	type:{
+		type: String,
+		default:'farm'
 	}
+	//farm
+	//adicionado
+	//roleta
 })
 
 

@@ -139,6 +139,9 @@ router.get('/restorePointsStreamElements', authMiddleware, pointsController.rest
     //RedeemPoints
     router.get('/redeemPoints', authMiddleware, redeeemPointsController.listRedeemPoints);
     router.get('/redeemPoints/register/pendentes', authMiddleware, redeeemPointsController.registerRedeemPotionsPendentes);
+router.put('/points/:id_channel/:points/roleta', authMiddleware, pointsController.roletaPoints);
+router.put('/points/:id_user/:points/add', authMiddleware, pointsController.addpointsManual);
+
 
 //RedeemProducts
 router.get('/redeemProducts', authMiddleware, redeemProductsController.listRedeemProducts);

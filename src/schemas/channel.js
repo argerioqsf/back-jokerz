@@ -23,6 +23,10 @@ const Channel = new mongoose.Schema({
 	max_farm_account:{
 		type:Number,
 		default:1
+	},
+	probability_roulette:{
+		type:Number,
+		default:45
 	}
 })
 
