@@ -59,13 +59,13 @@ async function organizeItens (data_descriptions, data_assets, i){
             if (data_descriptions.market_name) {
                 let price_steam = await getValue(data_descriptions.market_name);
                 if (price_steam) {
-                    price = price_steam.data?price_steam.data.lowest_price:'R$ 22,16';
+                    price = price_steam.data?price_steam.data.lowest_price:'R$ 00,00';
                     price = price.split(' ');
                     price = parseFloat(price[1].replace(',','.'));
                     console.log(i+" - price_steam response "+price);
                 } else {
                     console.log(i+" - data_CSGOfloat response error");
-                    price = 0;
+                    price = 0.00;
                 }
             }
             
@@ -188,8 +188,6 @@ module.exports = {
                                 let itens_organizados = await organizeItens(data_descriptions,data_assets,i);
                                 itens_organizados.id_owner = id_owner;
                                 itens.push(itens_organizados);
-                                
-
                         }
                     }
                 }
