@@ -151,7 +151,9 @@ async function getFloat(tradelink){
 async function getValue(nomedoitem){
     return new Promise((resolve,reject)=>{
         try {
-            let resp = axios.get(`http://steamcommunity.com/market/priceoverview/?appid=730&currency=7&market_hash_name=${nomedoitem}`); 
+            let url = encodeURI(`http://steamcommunity.com/market/priceoverview/?appid=730&currency=7&market_hash_name=${nomedoitem}`);
+            console.log("url: ",url);
+            let resp = axios.get(url); 
             return resolve(resp);
         } catch (error) {
             return resolve(false);
@@ -167,7 +169,7 @@ function sleep(milliseconds) {
     } while (currentDate - date < milliseconds);
 }
 
-module.exports = {
+module.exports = { 
     getItensCs: async ()=>{
         let url = `http://steamcommunity.com/inventory/${id_owner}/730/2`;
         return axios.get(url);
@@ -184,7 +186,7 @@ module.exports = {
     
                                 let data_descriptions = response.data.descriptions[u];
                                 let data_assets = response.data.assets[i];
-                                sleep(5000);
+                                sleep(3000);
                                 let itens_organizados = await organizeItens(data_descriptions,data_assets,i);
                                 itens_organizados.id_owner = id_owner;
                                 itens.push(itens_organizados);
