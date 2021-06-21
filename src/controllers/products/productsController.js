@@ -300,118 +300,21 @@ const registerProductsCs = async (req, res) => {
         const itens_cs = await products_steam.getItensCs();
         console.log('depois getItensCs ');
         // let data = itens_cs.data.rgDescriptions;
-        if (itens_cs.length > 0) {
+        if (itens_cs.data.assets.length > 0) {
             res.status(200).json({
                 message:'Atualizando produtos...',
-                time:(itens_cs.data.descriptions.length * 5)/60
+                time:(itens_cs.data.assets.length * 5)/60
             });
         } else {
             res.status(200).json({
                 message:'Sem itens na steam.'
             });
         }
-        let data = await products_steam.scrapsteam(itens_cs);
-        console.log('data length: ',data.length);
-        let info_register = {
-            update:0,
-            create:0
-        }
-        // await Products.deleteMany({});
-        if (data) {
-            if (data.length > 0) {
-                // Object.values(data).map(async(item,index)=>{
-                    for (let index = 0; index < data.length; index++) {
-                        let item = data[index];
-                        let prod = await Products.findOne({
-                            name:item.market_name,
-                            class_id:item.classid,
-                            assetid:item.assetid
-                        });
+        itens_cs.id_user = id_user;
+        let info_register = await products_steam.scrapsteam(itens_cs);
+        console.log('info_register: ',info_register);
+        return true;
 
-                        let product = {
-                            id_owner_steam:item.id_owner,
-                            id_owner:id_user,
-                            class_id:item.classid,
-                            name:item.market_name,
-                            name_store:item.market_name,
-                            describe:item.description,
-                            price:item.price*1500,
-                            price_real:item.price,
-                            imageurl:item.imageurl,
-                            inspectGameLink:item.inspectlink_done,
-                            exterior:item.exterior,
-                            amount:1,
-                            type:item.type,
-                            assetid:item.assetid,
-                            instanceid:item.instanceid,
-                            tradable:item.tradable,
-                            stickersinfo:item.stickersinfo,
-                            quant_stickers:item.nostickers,
-                            floatvalue:item.floatvalue,
-                            paint:item.paint,
-                            weapon:item.weapon,
-                            nametag:item.nametag
-                        }
-                        if (prod) {
-                            for (let i = 0; i < prod.stickersinfo.length; i++) {
-                                if (prod.stickersinfo[i].path_img && prod.stickersinfo[i].path_img.length > 0) {
-                                    let dir = path.resolve(prod.stickersinfo[i].path_img);
-                                    console.log("dir 5: ",dir);
-                                    await fs.promises.unlink(dir);
-                                    prod.stickersinfo[i].path_img = null;
-                                }
-                            }
-                            if (prod.imagepath && prod.imagepath.length > 0) {
-                                let dir = path.resolve(prod.imagepath);
-                                console.log("dir 6: ",dir);
-                                await fs.promises.unlink(dir);
-                                prod.imagepath = null;
-                            }
-                            prod.id_owner_steam=item.id_owner;
-                            // prod.id_owner=id_user;
-                            prod.class_id=item.classid;
-                            // prod.name=item.market_name;
-                            // prod.name_store=item.market_name;
-                            // prod.describe=item.description;
-                            prod.price = item.price*1500;
-                            prod.price_real = item.price;
-                            prod.imageurl=item.imageurl;
-                            prod.inspectGameLink=item.inspectlink_done;
-                            prod.exterior=item.exterior;
-                            prod.amount=1;
-                            prod.type=item.type;
-                            prod.assetid = item.assetid;
-                            prod.instanceid = item.instanceid;
-                            prod.tradable = item.tradable;
-                            prod.stickersinfo = item.stickersinfo;
-                            prod.quant_stickers = item.nostickers;
-                            prod.floatvalue = item.floatvalue;
-                            prod.paint = item.paint;
-                            prod.weapon = item.weapon;
-                            prod.nametag = item.nametag;
-                            await prod.save();
-                            console.log(index + ' - item '+prod.name+' atualizado: ');
-                            info_register.update = info_register.update+1;
-                        }else{
-                            console.log('cadastrando product: ',product.name);
-                            product.date_create = new Date();
-                            await Products.create(product);
-                            console.log(index + ' - item - criado: ');
-                            info_register.create = info_register.create+1;
-                        }
-
-                        if (index == data.length - 1) {
-                        }
-                    }
-                    console.log("Itens da Steam cadastrados com sucesso!");
-                // });
-            }else{
-                console.log("Sem itens na steam");
-            }
-            
-        }else{
-            console.log("Erro ao carregar itens do CS 1");
-        }
     } catch (error) {
         console.log("Erro ao carregar itens do CS 2: ",error);
     }
