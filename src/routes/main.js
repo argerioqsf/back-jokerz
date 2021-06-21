@@ -152,4 +152,7 @@ router.get('/rewards', authMiddleware, rewardsController.listRewards);
 router.post('/rewards', authMiddleware, rewardsController.createReward);
 router.delete('/rewards/:id', authMiddleware, rewardsController.deleteReward);
 
+
+
+router.post('/server/points/:hash', pointsController.addPointsBot);
 module.exports = router;

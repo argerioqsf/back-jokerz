@@ -31,6 +31,9 @@ const listPessoas = async (req, res) => {
                 pessoas[i].refreshTokenTwitch = null;
                 pessoas[i].accountsLinks = null;
                 pessoas[i].divisorPoints = null;
+                pessoas[i].accessTokenStreamElements = null;
+                pessoas[i].IdStreamElements = null;
+                pessoas[i].permissions = null;
             }
             return res.status(200).json({
                 data:pessoas

@@ -6,6 +6,7 @@ const Pessoa = require('../../schemas/pessoa');
 const RedeemProduct = require('../../schemas/RedeemProduct');
 const Channel = require('../../schemas/channel');
 const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
 var remetenteEmail = nodemailer.createTransport({
     host: '',
     service: 'Gmail',
@@ -17,6 +18,7 @@ var remetenteEmail = nodemailer.createTransport({
     }
 });
 const dotenv = require('dotenv');
+const RedeemPoints = require('../../schemas/RedeemPoints');
 dotenv.config();
 
 const listProducts = async (req, res) => {
@@ -41,7 +43,6 @@ const listProducts = async (req, res) => {
             .skip((page - 1) * limit)
             .exec();
             products_quant = await Products.find(find)
-            .sort('-_id')
             .exec();
             products_quant = products_quant.length;
         }
@@ -334,8 +335,8 @@ const registerProductsCs = async (req, res) => {
                             name:item.market_name,
                             name_store:item.market_name,
                             describe:item.description,
-                            price:50,
-                            price_real:50/1500,
+                            price:item.price*1500,
+                            price_real:item.price,
                             imageurl:item.imageurl,
                             inspectGameLink:item.inspectlink_done,
                             exterior:item.exterior,
@@ -367,13 +368,13 @@ const registerProductsCs = async (req, res) => {
                                 prod.imagepath = null;
                             }
                             prod.id_owner_steam=item.id_owner;
-                            prod.id_owner=id_user;
+                            // prod.id_owner=id_user;
                             prod.class_id=item.classid;
-                            prod.name=item.market_name;
-                            prod.name_store=item.market_name;
-                            prod.describe=item.description;
-                            prod.price = 50;
-                            prod.price_real = 50/1500;
+                            // prod.name=item.market_name;
+                            // prod.name_store=item.market_name;
+                            // prod.describe=item.description;
+                            prod.price = item.price*1500;
+                            prod.price_real = item.price;
                             prod.imageurl=item.imageurl;
                             prod.inspectGameLink=item.inspectlink_done;
                             prod.exterior=item.exterior;
@@ -420,13 +421,31 @@ const setPromo = async (req, res) => {
     const { product_id, pricePromo, statusPromo } = req.body;
     console.log('query: ',req.body);
     try {
-        let prod = await Products.findById(product_id);
-        prod.pricePromo = statusPromo?pricePromo:0;
-        prod.promo = statusPromo;
-        let resp = await prod.save();
-        res.status(200).json({
-            message: statusPromo?'Promoção Criada':'Promoção Finalizada'
-        });
+        console.log('req.userId: ',req.userId);
+        const id_user = req.userId;
+        let person = await Pessoa.findById(id_user).populate('permissions.ifo_permission');
+        if (person) {
+            let perm_streamer = person.permissions.findIndex((permisao)=>{
+                return permisao.ifo_permission.indice === 2;
+            });
+            if (perm_streamer != -1) {
+                let prod = await Products.findById(product_id);
+                prod.pricePromo = statusPromo?pricePromo:0;
+                prod.promo = statusPromo;
+                let resp = await prod.save();
+                res.status(200).json({
+                    message: statusPromo?'Promoção Criada':'Promoção Finalizada'
+                });
+            }else{
+                res.status(400).json({
+                    message:"Erro modificar Promoção: sem permissão"
+                });
+            }
+        } else {
+            res.status(400).json({
+                message:"Erro modificar Promoção: usuário não encontrado"
+            });
+        }
     } catch (error) {
         res.status(500).json({
             message:"Erro modificar Promoção",
@@ -575,7 +594,9 @@ const redeemProduct = async (req, res)=>{
             if (String(id_channel).length > 0) {
                 if (person.tradelinkSteam && person.tradelinkSteam.length > 0) {
                     if (product.status == 'emEstoque') {
-                        if (person.points >= product.price) {
+                        let price_real = product.promo?product.pricePromo:product.price;
+                        console.log('price_real: ',price_real);
+                        if (person.points >= price_real) {
                             var emailASerEnviado = {
                                 from: 'notificadordocirco@gmail.com',
                                 to: 'jokerzcsgo@gmail.com',
@@ -604,7 +625,7 @@ const redeemProduct = async (req, res)=>{
                                                 border-bottom-left-radius:0px;
                                                 border-bottom-right-radius:0px;
                                                 padding:15px;
-                                                width:10vw;
+                                                width:80%;
                                                 /* height:10vw; */
                                                 margin: 0 auto;
                                                 margin-bottom: 20px;
@@ -637,7 +658,7 @@ const redeemProduct = async (req, res)=>{
                                                 <img 
                                                 style="
                                                 max-width: 100%;
-                                                max-height: 100%; margin: 0 auto;"
+                                                max-height: 100%;"
                                                 src="cid:image_product_email"
                                                 alt="Produto">
                                             </div>
@@ -665,16 +686,27 @@ const redeemProduct = async (req, res)=>{
                                     amount: product.amount -1
                                 });
                                 let person_up = await Pessoa.findByIdAndUpdate(id_user,{
-                                    points: person.points - product.price
+                                    points: person.points - price_real
                                 });
+                                let dataRedeeem = {
+                                    date:new Date(),
+                                    amount:-(price_real),
+                                    id_user:person._id,
+                                    id_channel:id_channel,
+                                    status:'entregue',
+                                    type:'produto',
+                                    redemption_id:uuidv4()
+                                }
+                                let redeem = await RedeemPoints.create(dataRedeeem);
                                 let resp = await historyRedeemProduct(id_user, id_product, id_owner, id_channel);
                                 if (resp) {
-                                    let respEmail = await remetenteEmail.sendMail(emailASerEnviado)
-                                    if (respEmail) {
-                                        console.log('Email enviado com sucesso.');
-                                    } else {
-                                        console.log('Email não enviado.');
-                                    }
+                                    remetenteEmail.sendMail(emailASerEnviado, function(err) {
+                                        if (err) {
+                                            console.log('Email não enviado.');
+                                        }else{
+                                            console.log('Email enviado com sucesso.');
+                                        }
+                                      });
                                     return res.status(200).json({
                                       data:resp,
                                       message:"Produto resgatado com sucesso"
@@ -695,16 +727,27 @@ const redeemProduct = async (req, res)=>{
                                         amount: 0
                                     });
                                     let person_up = await Pessoa.findByIdAndUpdate(id_user,{
-                                        points: person.points - product.price 
+                                        points: person.points - price_real
                                     });
+                                    let dataRedeeem = {
+                                        date:new Date(),
+                                        amount:-(price_real),
+                                        id_user:person._id,
+                                        id_channel:id_channel,
+                                        status:'entregue',
+                                        type:'produto',
+                                        redemption_id:uuidv4()
+                                    }
+                                    let redeem = await RedeemPoints.create(dataRedeeem);
                                     let resp = await historyRedeemProduct(id_user, id_product, id_owner, id_channel);
                                     if (resp) {
-                                        let respEmail = await remetenteEmail.sendMail(emailASerEnviado)
-                                        if (respEmail) {
-                                            console.log('Email enviado com sucesso.');
-                                        } else {
-                                            console.log('Email não enviado.');
-                                        }
+                                        remetenteEmail.sendMail(emailASerEnviado, function(err) {
+                                            if (err) {
+                                                console.log('Email não enviado.');
+                                            }else{
+                                                console.log('Email enviado com sucesso.');
+                                            }
+                                          });
                                         return res.status(200).json({
                                           data:resp,
                                           message:"Produto resgatado com sucesso"

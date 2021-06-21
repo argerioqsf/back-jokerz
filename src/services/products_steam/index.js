@@ -40,11 +40,33 @@ async function organizeItens (data_descriptions, data_assets, i){
             let weapon = "";
             if (inspectlink_done) {
                 let data_CSGOfloat = await getFloat(inspectlink_done);
-                console.log(i+" - data_CSGOfloat response");
-                floatvalue = data_CSGOfloat.data.iteminfo.floatvalue;
-                floatvalue = String(floatvalue);
-                paint = data_CSGOfloat.data.iteminfo.item_name;
-                weapon = data_CSGOfloat.data.iteminfo.weapon_type;
+                if (data_CSGOfloat) {
+                    console.log(i+" - data_CSGOfloat response");
+                    floatvalue = data_CSGOfloat.data.iteminfo.floatvalue;
+                    floatvalue = String(floatvalue);
+                    paint = data_CSGOfloat.data.iteminfo.item_name;
+                    weapon = data_CSGOfloat.data.iteminfo.weapon_type;
+                } else {
+                    console.log(i+" - data_CSGOfloat response");
+                    floatvalue = 'null';
+                    paint = 'null';
+                    weapon = 'null';
+                }
+            }
+            
+            //Pegar o valor
+            let price = 0;
+            if (data_descriptions.market_name) {
+                let price_steam = await getValue(data_descriptions.market_name);
+                if (price_steam) {
+                    price = price_steam.data?price_steam.data.lowest_price:'R$ 22,16';
+                    price = price.split(' ');
+                    price = parseFloat(price[1].replace(',','.'));
+                    console.log(i+" - price_steam response "+price);
+                } else {
+                    console.log(i+" - data_CSGOfloat response error");
+                    price = 0;
+                }
             }
             
             // Pegar o Type, Weapon e Exterior
@@ -83,7 +105,8 @@ async function organizeItens (data_descriptions, data_assets, i){
                 weapon:weapon?weapon:"",
                 type:type?type:"",
                 exterior:exterior?exterior:"",
-                nametag:nametag?nametag:""
+                nametag:nametag?nametag:"",
+                price:price?price:0
             }
 
             resolve(product);
@@ -115,8 +138,27 @@ async function stickersname(imagelinkraw){
 }
 
 async function getFloat(tradelink){
-    return axios.get(`https://api.csgofloat.com/?url=${tradelink}`); 
+    return new Promise((resolve,reject)=>{
+        try {
+            let resp = axios.get(`https://api.csgofloat.com/?url=${tradelink}`); 
+            return resolve(resp);
+        } catch (error) {
+            return resolve(false);
+        }
+    });
 }
+
+async function getValue(nomedoitem){
+    return new Promise((resolve,reject)=>{
+        try {
+            let resp = axios.get(`http://steamcommunity.com/market/priceoverview/?appid=730&currency=7&market_hash_name=${nomedoitem}`); 
+            return resolve(resp);
+        } catch (error) {
+            return resolve(false);
+        }
+    });
+}
+
 function sleep(milliseconds) {
     const date = Date.now();
     let currentDate = null;
@@ -146,6 +188,7 @@ module.exports = {
                                 let itens_organizados = await organizeItens(data_descriptions,data_assets,i);
                                 itens_organizados.id_owner = id_owner;
                                 itens.push(itens_organizados);
+                                
 
                         }
                     }

@@ -40,6 +40,7 @@ const RedeemPoints = new mongoose.Schema({
 	//farm
 	//adicionado
 	//roleta
+	//drop
 })
 
 

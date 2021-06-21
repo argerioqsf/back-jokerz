@@ -247,47 +247,53 @@ exports.roletaPoints = async function(req, res){
         if (channel) {
             console.log("channel.probability_roulette: ",channel.probability_roulette);
             if (person) {
-                console.log("person.points: ",person.points);
-                if (points && person.points >= points) {
-                    if (points >= 10) {
-                        console.log("Tem pontos");
-                        let probability_yes = channel.probability_roulette > 100?100:channel.probability_roulette < 0?0:channel.probability_roulette;
-                        let probability_no = 100 - probability_yes;
-                        let roleta = percentageChance(['nao', 'sim'], [probability_no, probability_yes]);
-                        console.log("probability_yes: ",probability_yes);
-                        console.log("probability_no: ",probability_no);
-                        let new_points = 0;
-                        if (roleta == 'nao') {
-                            let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points - points});
-                            new_points = - points;
+                if (person.type_account == 'primary') {
+                    console.log("person.points: ",person.points);
+                    if (points && person.points >= points) {
+                        if (points >= 10) {
+                            console.log("Tem pontos");
+                            let probability_yes = channel.probability_roulette > 100?100:channel.probability_roulette < 0?0:channel.probability_roulette;
+                            let probability_no = 100 - probability_yes;
+                            let roleta = percentageChance(['nao', 'sim'], [probability_no, probability_yes]);
+                            console.log("probability_yes: ",probability_yes);
+                            console.log("probability_no: ",probability_no);
+                            let new_points = 0;
+                            if (roleta == 'nao') {
+                                let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points - points});
+                                new_points = - points;
+                            }
+                            if (roleta == 'sim') {
+                                let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points + points});
+                                new_points = points;
+                            }
+                            let dataRedeeem = {
+                                date:new Date(),
+                                amount:(new_points),
+                                id_user:person._id,
+                                id_channel:channel._id,
+                                status:'entregue',
+                                type:'roleta',
+                                redemption_id:uuidv4()
+                            }
+                            let redeem = await RedeemPoints.create(dataRedeeem);
+                            return res.status(201).json({
+                                message:'Roleta acionada com sucesso',
+                                data:new_points
+                            });
+                        }else{
+                            return res.status(400).json({
+                                message:'Erro ao utilizar a roleta: apostas permitidas apartir de 10 pontos'
+                            });
                         }
-                        if (roleta == 'sim') {
-                            let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points + points});
-                            new_points = points;
-                        }
-                        let dataRedeeem = {
-                            date:new Date(),
-                            amount:(new_points),
-                            id_user:person._id,
-                            id_channel:channel._id,
-                            status:'entregue',
-                            type:'roleta',
-                            redemption_id:uuidv4()
-                        }
-                        let redeem = await RedeemPoints.create(dataRedeeem);
-                        return res.status(201).json({
-                            message:'Roleta acionada com sucesso',
-                            data:new_points
-                        });
                     }else{
+                        console.log("Não tem pontos");
                         return res.status(400).json({
-                            message:'Erro ao utilizar a roleta: apostas permitidas apartir de 10 pontos'
+                            message:'Erro ao utilizar a roleta: pontos insuficientes'
                         });
                     }
                 }else{
-                    console.log("Não tem pontos");
                     return res.status(400).json({
-                        message:'Erro ao utilizar a roleta: pontos insuficientes'
+                        message:'Erro ao utilizar a roleta: apenas para contas primárias'
                     });
                 }
             } else {
@@ -711,4 +717,105 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
             return resolve(false);
         }
     });
+}
+
+exports.addPointsBot = async function(req, res){
+    try {
+        let hash = req.params?req.params.hash:'';
+        let body = req.body?req.body:null;
+        console.log("hash: ",hash);
+        console.log("body: ",body);
+        if (hash == '7a8b979a95529a7aea259e9e26daed950a01937b14fbe34575684a1244618c2d') {
+            if (body) {
+                let id_user_twitch = body.id_user_twitch;
+                let id_streamer = body.id_streamer;
+                let points = body.points;
+                console.log("id_user_twitch: ",id_user_twitch);
+                console.log("id_streamer: ",id_streamer);
+                console.log("points: ",points);
+                let person = await Pessoa.findOne({idTwitch:id_user_twitch});
+                console.log("person: ",person);
+                let user_streamer = await Pessoa.findOne({idTwitch:id_streamer});
+                console.log("user_streamer: ",user_streamer);
+                if (person) {
+                    if (user_streamer) {
+                        person.points = person.points + (points);
+                        let index_channel = person.channels.findIndex(channel_=>{
+                            return String(channel_.info_channel) == String(user_streamer.channel);
+                        });
+                        if (index_channel != -1) {
+                            console.log('canal encontrado no usuario DROP');
+                            if (person.type_account == 'secondary') {
+                                let person_primary = await Pessoa.findById(person.primary_account_ref);
+                                person_primary.points = person_primary.points + (points);
+                                await person_primary.save();
+                            }
+                            person.channels[index_channel].points = person.channels[index_channel].points + (points);
+                            person.channels[index_channel].status = true;
+                            await person.save();
+                            let dataRedeeem = {
+                                date:new Date(),
+                                amount:(points),
+                                id_user:person._id,
+                                id_channel:user_streamer.channel,
+                                status:'entregue',
+                                type:'drop',
+                                redemption_id:uuidv4()
+                            }
+                            let redeem = await RedeemPoints.create(dataRedeeem);
+                            return res.status(201).json({
+                                message:'Pontos adicionados com sucesso ao usuario '+person.nickname,
+                                status:201,
+                                newAmount:person.points
+                            });
+                        } else {
+                            console.log('canal nao encontrado no usuario DROP');
+                            if (person.type_account == 'secondary') {
+                                let person_primary = await Pessoa.findById(person.primary_account_ref);
+                                person_primary.points = person_primary.points + (points);
+                                await person_primary.save();
+                            }
+                            person.channels = [
+                                ...person.channels,
+                                {
+                                    info_channel: user_streamer.channel,
+                                    points: (points),
+                                    status:true
+                                }
+                            ];
+                            await person.save();
+                            let dataRedeeem = {
+                                date:new Date(),
+                                amount:(points),
+                                id_user:person._id,
+                                id_channel:user_streamer.channel,
+                                status:'entregue',
+                                type:'drop',
+                                redemption_id:uuidv4()
+                            }
+                            let redeem = await RedeemPoints.create(dataRedeeem);
+                            return res.status(201).json({
+                                message:'Pontos adicionados com sucesso ao usuario '+person.nickname,
+                                status:201,
+                                newAmount:person.points
+                            });
+                        }
+                    }else{
+                        return res.status(200).json({
+                            status:500
+                        });
+                    }
+                } else {
+                    return res.status(201).json({
+                        message:'Erro ao adicionar pontos: nickname não encontrado',
+                        status:404
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        return res.status(500).send({
+            message:'Erro ao trocr status do PubSub',
+        });
+    }
 }
