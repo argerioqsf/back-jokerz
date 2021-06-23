@@ -10,6 +10,9 @@ const Pessoa = new mongoose.Schema({
 		type: String,
 		required: true
 	},
+	picture: {
+		type: String
+	},
 	password: {
 		type: String,
 		select:false

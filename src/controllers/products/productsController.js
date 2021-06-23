@@ -22,38 +22,95 @@ const RedeemPoints = require('../../schemas/RedeemPoints');
 dotenv.config();
 
 const listProducts = async (req, res) => {
-    const { page = 1, limit = 12, last = false, status = null } = req.query;
+    const {
+        page = 1,
+        limit = 12,
+        last = false,
+        status = null,
+        filtroType = null,
+        filtroPrice = null
+    } = req.query;
+
     try {
         let products_quant = 0;
         let products = [];
         let find = status?{status:status}:{}
-        if (last) {
-            products = await Products.find(find)
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .sort('-_id')
-            .exec();
-            products_quant = await Products.find(find)
-            .sort('-_id')
-            .exec();
-            products_quant = products_quant.length;
-        }else{
-            products = await Products.find(find)
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .exec();
-            products_quant = await Products.find(find)
-            .exec();
-            products_quant = products_quant.length;
+        let findFilter = status?{status:status}:{}
+        let filtros_type = [];
+        let regra_filtros = ["Pistol","Rifle","Sniper Rifle","SMG","Shotgun","Machinegun","Knife","Glove","Sticker","Agent"];
+        let exists_outros = false;
+        let filters_order = [];
+
+        if (filtroType && filtroType != "Other") {
+            find = {
+                ...find,
+                type:filtroType
+            };
+        }
+
+        if (filtroType && filtroType == "Other") {
+            console.log("filtros_type Other");
+            find = {
+                ...find,
+                type: { $nin: regra_filtros }
+            };
+        }
+
+        filtros_type = await Products.aggregate([
+            {
+              $group:{_id: "$type"}
+            },
+            {
+              $sort:{_id: 1}
+            }
+        ]);
+
+        if (filtros_type.length > 0) {
+            // console.log("filtros_type: ",filtros_type);
+            for (let i = 0; i < filtros_type.length; i++) {
+                // console.log(regra_filtros.includes(filtros_type[i]._id));
+                if (regra_filtros.includes(filtros_type[i]._id) && filtros_type[i]._id.length > 0) {
+                    // console.log("passou: ",filtros_type[i]._id);
+                    filters_order.push(filtros_type[i]);
+                }else{
+                    // filtros_type.splice(i,1);
+                    exists_outros = true;
+                }
+            }
         }
         
+        if(exists_outros) filters_order.push({"_id": "Other"});
+
+        products = Products.find(find).limit(limit * 1).skip((page - 1) * limit);
+        products_quant = await Products.find(find).exec();
+        products_quant = products_quant.length;
+
+        if (last) {
+            console.log("filtro last");
+            products = products.sort('-_id');
+        }
+
+        if (filtroPrice) {
+            if (filtroPrice == 'up') {
+                console.log("filtroPrice: up");
+                products = products.sort('-price');
+            }
+            if (filtroPrice == 'down') {
+                console.log("filtroPrice: down");
+                products = products.sort('price')
+            }
+        }
+        
+        products = await products.exec();
         const count = products_quant;
         let totalPages = Math.ceil(count / limit);
         res.status(200).json({
           data:products,
           totalPages: totalPages,
           currentPage: page,
-          total_itens: products_quant
+          total_itens: products_quant,
+          filtros_type:filters_order,
+          regra_filtros:regra_filtros
         });
     } catch (error) {
           res.status(400).send({
