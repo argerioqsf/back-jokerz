@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const authConfig = require('../../configs/auth.json');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const { getUserInfo } = require("../../services/twitch");
 dotenv.config();
 
 const genereteToken = (params = {})=>{
@@ -29,7 +30,7 @@ const getUrlTwitch = async (req, res) => {
     if (state) {
         url += `&state=${state}`;
     }
-    url += `&claims={"id_token":{"preferred_username":null}}`;
+    url += `&claims={"id_token":{"preferred_username":null},"userinfo":{"picture":null}}}`;
   
     res.status(200).json({
       message:'url de login gerada com sucesso',
@@ -47,7 +48,7 @@ const getUrlTwitchLinkedAccount = async (req, res) => {
     if (state) {
         url += `&state=${state}`;
     }
-    url += `&claims={"id_token":{"preferred_username":null}}`;
+    url += `&claims={"id_token":{"preferred_username":null},"userinfo":{"picture":null}}}`;
   
     res.status(200).json({
       message:'url de login gerada com sucesso',
@@ -69,12 +70,13 @@ const authFromCodePerson = async (req, res) => {
     try {
         const resp = await oauth.getTokenFromCode(code);
         let data = resp.resp.data;
+        let infoUser = await getUserInfo(data.access_token);
+        console.log('infoUser: ',infoUser.resp.data.picture);
         // console.log('resp.status: ',resp.status);
         // console.log('data: ',data);
         
         if (resp.status) {
             let decodedResponse = await oauth.parseJWTToken(resp.resp.data.id_token);
-            // console.log('decodedResponse: ',decodedResponse);
             let pessoa = null;
             if (id_user) {
                 pessoa = await Pessoa.findById(id_user).populate('accountsLinks.info_accountLink');
@@ -107,6 +109,7 @@ const authFromCodePerson = async (req, res) => {
                         }
                         pessoa.idTwitch = decodedResponse.resp.sub;
                         pessoa.nickname = decodedResponse.resp.preferred_username.toLowerCase();
+                        pessoa.picture = infoUser.resp.data.picture?infoUser.resp.data.picture:'https://www.banffcentre.ca/sites/all/themes/tbc_custom/images/default_user.png';
                         pessoa.accessTokenTwitch = data.access_token;
                         pessoa.refreshTokenTwitch = data.refresh_token;
                         if (!pessoa.ip_user) {
@@ -135,6 +138,7 @@ const authFromCodePerson = async (req, res) => {
                 let createOrUpdate = await pessoasController.registerPerson({
                     idTwitch:decodedResponse.resp.sub,
                     nickname:decodedResponse.resp.preferred_username.toLowerCase(),
+                    picture:infoUser.resp.data.picture?infoUser.resp.data.picture:'https://www.banffcentre.ca/sites/all/themes/tbc_custom/images/default_user.png',
                     name:decodedResponse.resp.preferred_username,
                     accessTokenTwitch:data.access_token,
                     refreshTokenTwitch:data.refresh_token,

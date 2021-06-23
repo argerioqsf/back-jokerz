@@ -27,6 +27,9 @@ const Channel = new mongoose.Schema({
 	probability_roulette:{
 		type:Number,
 		default:45
+	},
+	picture: {
+		type: String
 	}
 })
 

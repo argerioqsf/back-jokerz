@@ -7,6 +7,7 @@ const twitch = require('.');
 dotenv.config();
 const axios = require('axios');
 const authController = require('../../controllers/auth/authController');
+const { normalizeUnits } = require('moment');
 
 exports.deleteRewardGeneral = async function(id_reward, id_user,refresh = false){
     return new Promise(async(resolve,request)=>{
@@ -163,6 +164,30 @@ exports.listRedemptions = async function(id_reward, id_streamer, status = 'UNFUL
             }
             console.log('Erro ao listar redemptions: '+error.message);
             resolve(false);
+        }
+    });
+}
+
+exports.getUserInfo = async function(token) {
+    return new Promise(async(resolve,reject)=>{
+        try {
+            let url = `https://id.twitch.tv/oauth2/userinfo`;
+            const api = await axios.create({
+              baseURL: url,
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            const resp = await api.get(url);
+            resolve({
+                status:true,
+                resp:resp
+            });
+        } catch (error) {
+            resolve({
+                status:false,
+                error:error
+            });
         }
     });
 }
