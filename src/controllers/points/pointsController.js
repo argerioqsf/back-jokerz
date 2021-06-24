@@ -664,7 +664,7 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                 id_user:person._id,
                                 id_channel:channel._id,
                                 status:'entregue',
-                                reward_id:'streamelements',
+                                type:'streamelements',
                                 redemption_id:uuidv4()
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
@@ -688,7 +688,7 @@ exports.add_userpoints = async function (offset, user_streamer, channel, instanc
                                     id_user:person._id,
                                     id_channel:channel._id,
                                     status:'entregue',
-                                    reward_id:'streamelements',
+                                    type:'streamelements',
                                     redemption_id:uuidv4()
                                 }
                                 let redeem = await RedeemPoints.create(dataRedeeem);
