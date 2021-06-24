@@ -251,35 +251,53 @@ exports.roletaPoints = async function(req, res){
                     console.log("person.points: ",person.points);
                     if (points && person.points >= points) {
                         if (points >= 10) {
-                            console.log("Tem pontos");
-                            let probability_yes = channel.probability_roulette > 100?100:channel.probability_roulette < 0?0:channel.probability_roulette;
-                            let probability_no = 100 - probability_yes;
-                            let roleta = percentageChance(['nao', 'sim'], [probability_no, probability_yes]);
-                            console.log("probability_yes: ",probability_yes);
-                            console.log("probability_no: ",probability_no);
-                            let new_points = 0;
-                            if (roleta == 'nao') {
-                                let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points - points});
-                                new_points = - points;
+                            if (channel.roleta.length > 0) {
+                                console.log("Tem pontos");
+                                let opcoes = channel.roleta.map((opcao)=>{
+                                    return opcao.name;
+                                });
+                                let probabilitys = channel.roleta.map((opcao)=>{
+                                    return opcao.probability;
+                                });
+                                let roleta = percentageChance(opcoes, probabilitys);
+                                let opcao_selected = channel.roleta.filter((opcao)=>{
+                                    return opcao.name == roleta;
+                                });
+                                if (opcao_selected.length > 0) {
+                                    opcao_selected = opcao_selected[0];
+                                    let new_points = (opcao_selected.multiplicador * points);
+                                    let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points + new_points});
+                                    let probabilitys_indice = [];
+                                    for (let i = 0; i < opcao_selected.campos.length; i++) {
+                                        probabilitys_indice.push(100/opcao_selected.campos.length);
+                                    }
+                                    let roleta_indice = percentageChance(opcao_selected.campos, probabilitys_indice);
+                                    let dataRedeeem = {
+                                        date:new Date(),
+                                        amount:(new_points),
+                                        id_user:person._id,
+                                        id_channel:channel._id,
+                                        status:'entregue',
+                                        type:'roleta',
+                                        redemption_id:uuidv4()
+                                    }
+                                    let redeem = await RedeemPoints.create(dataRedeeem);
+                                    return res.status(201).json({
+                                        message:'Roleta acionada com sucesso',
+                                        data:new_points,
+                                        roleta:roleta,
+                                        roleta_indice
+                                    });
+                                } else {
+                                    return res.status(500).json({
+                                        message:'Erro ao utilizar a roleta: erro ao girar a roleta'
+                                    });
+                                }
+                            }else{
+                                return res.status(400).json({
+                                    message:'Erro ao utilizar a roleta: roleta não cadastrada para esse canal'
+                                });
                             }
-                            if (roleta == 'sim') {
-                                let person_update = await Pessoa.findByIdAndUpdate(person._id,{points:person.points + points});
-                                new_points = points;
-                            }
-                            let dataRedeeem = {
-                                date:new Date(),
-                                amount:(new_points),
-                                id_user:person._id,
-                                id_channel:channel._id,
-                                status:'entregue',
-                                type:'roleta',
-                                redemption_id:uuidv4()
-                            }
-                            let redeem = await RedeemPoints.create(dataRedeeem);
-                            return res.status(201).json({
-                                message:'Roleta acionada com sucesso',
-                                data:new_points
-                            });
                         }else{
                             return res.status(400).json({
                                 message:'Erro ao utilizar a roleta: apostas permitidas apartir de 10 pontos'

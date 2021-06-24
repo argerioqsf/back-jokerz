@@ -24,6 +24,29 @@ const Channel = new mongoose.Schema({
 		type:Number,
 		default:1
 	},
+	roleta:[
+		{
+			name:{
+				type: String,
+				required: true
+			},
+			probability:{
+				type: Number,
+				required: true
+			},
+			multiplicador:{
+				type: Number,
+				required: true
+			},
+			campos:[
+				{
+					type: Number,
+					required: true,
+					unique: true
+				}
+			]
+		}
+	],
 	probability_roulette:{
 		type:Number,
 		default:45
