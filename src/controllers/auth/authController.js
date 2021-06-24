@@ -14,13 +14,13 @@ const dotenv = require('dotenv');
 const { getUserInfo } = require("../../services/twitch");
 dotenv.config();
 
-const genereteToken = (params = {})=>{
+exports.genereteToken = function(params = {}){
     return jwt.sign(params, authConfig.secret,{
         expiresIn:86400,
     });
 }
 
-const getUrlTwitch = async (req, res) => {
+exports.getUrlTwitch = async function(req, res){
     let { state } = req.query;
     let url = `https://id.twitch.tv/oauth2/authorize`;
     url += `?response_type=code`;
@@ -38,7 +38,7 @@ const getUrlTwitch = async (req, res) => {
     });
 };
 
-const getUrlTwitchLinkedAccount = async (req, res) => {
+exports.getUrlTwitchLinkedAccount = async function(req, res){
     let { state } = req.query;
     let url = `https://id.twitch.tv/oauth2/authorize`;
     url += `?response_type=code`;
@@ -56,7 +56,7 @@ const getUrlTwitchLinkedAccount = async (req, res) => {
     });
 };
 
-const authFromCodePerson = async (req, res) => {
+exports.authFromCodePerson = async function(req, res){
     const ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim() || 
     req.connection.remoteAddress || 
     req.socket.remoteAddress || 
@@ -174,7 +174,7 @@ const authFromCodePerson = async (req, res) => {
     }
 };
   
-const registerAuthStreamer = async (req, res) => {
+exports.registerAuthStreamer = async function(req, res){
   const pessoasController = require('../../controllers/pessoas/pessoasController');
   const {
       name,
@@ -251,7 +251,7 @@ const registerAuthStreamer = async (req, res) => {
     }
 };
 
-const loginStreamer = async (req, res) => {
+exports.loginStreamer = async function(req, res){
     const { nickname, password } = req.body;
         let data = {
             name:nickname.toLowerCase(),
@@ -301,7 +301,7 @@ const loginStreamer = async (req, res) => {
     //     });;
 };
 
-const refreshToken = async (id_user) => {
+exports.refreshToken = async function(id_user){
     return new Promise(async (resolve,reject)=>{
         const instance_refreshToken = axios.create({
             baseURL: 'https://id.twitch.tv/'
@@ -340,13 +340,4 @@ const refreshToken = async (id_user) => {
             }
         }
     });
-}
-
-module.exports = {
-    getUrlTwitch,
-    authFromCodePerson,
-    loginStreamer,
-    registerAuthStreamer,
-    getUrlTwitchLinkedAccount,
-    refreshToken
 }

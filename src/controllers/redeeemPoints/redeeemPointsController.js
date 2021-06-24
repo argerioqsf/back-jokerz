@@ -81,32 +81,43 @@ const registerRedeemPotionsPendentes = async (req, res)=>{
                 for (let i = 0; i < rewards_streamer.length; i++) {
                     let reward = rewards_streamer[i];
                     let redemptions_pendentes = await listRedemptions(reward._id,user_streamer._id,'UNFULFILLED');
+                    console.log("redemptions_pendentes: ",redemptions_pendentes);
                     if (redemptions_pendentes) {
-                        if (redemptions_pendentes.data.length > 0) {
-                            redemptions_pendentes = await redemptions_pendentes.data.map((redemption)=>{
-                                    return {
-                                        cost:redemption.reward.cost,
-                                        name_user:redemption.user_login.toLowerCase(),
-                                        id_twitch_user:redemption.user_id,
-                                        reward_id:redemption.reward.id,
-                                        redemption_id:redemption.id,
-                                        id_twitch_streamer:user_streamer.idTwitch
-                                    }
-                            })
-                            for (let j = 0; j < redemptions_pendentes.length; j++) {
-                                let dataRedeeem = redemptions_pendentes[j];
-                                let reward_exist = await RedeemPoints.findOne({redemption_id:dataRedeeem.redemption_id});
-                                if (reward_exist) {
-                                    console.log("RedeemPoint já existe");
-                                }else{
-                                    let result = await addpoints(dataRedeeem);
-                                    if (result) {
-                                        console.log("pontos adicionados ao usuario "+dataRedeeem.name_user+" registerRedeemPotionsPendentes");
-                                    } else {
-                                        console.log("pontos não adicionados ao usuario "+dataRedeeem.name_user+" registerRedeemPotionsPendentes");
+                        if ( redemptions_pendentes.data) {
+                            if (redemptions_pendentes.data.length > 0) {
+                                redemptions_pendentes = await redemptions_pendentes.data.map((redemption)=>{
+                                        return {
+                                            cost:redemption.reward.cost,
+                                            name_user:redemption.user_login.toLowerCase(),
+                                            id_twitch_user:redemption.user_id,
+                                            reward_id:redemption.reward.id,
+                                            redemption_id:redemption.id,
+                                            id_twitch_streamer:user_streamer.idTwitch
+                                        }
+                                })
+                                for (let j = 0; j < redemptions_pendentes.length; j++) {
+                                    let dataRedeeem = redemptions_pendentes[j];
+                                    let reward_exist = await RedeemPoints.findOne({redemption_id:dataRedeeem.redemption_id});
+                                    if (reward_exist) {
+                                        console.log("RedeemPoint já existe");
+                                    }else{
+                                        let result = await addpoints(dataRedeeem);
+                                        if (result) {
+                                            console.log("pontos adicionados ao usuario "+dataRedeeem.name_user+" registerRedeemPotionsPendentes");
+                                        } else {
+                                            console.log("pontos não adicionados ao usuario "+dataRedeeem.name_user+" registerRedeemPotionsPendentes");
+                                        }
                                     }
                                 }
+                            } else {
+                                return res.status(200).json({
+                                    message:'Sucesso ao cadastrar resgates de pontos pendentes'
+                                });
                             }
+                        } else {
+                            return res.status(200).json({
+                                message:'Sucesso ao cadastrar resgates de pontos pendentes'
+                            });
                         }
                     } else {
                         return res.status(400).json({
