@@ -247,7 +247,7 @@ exports.roletaPoints = async function(req, res){
         if (channel) {
             console.log("channel.probability_roulette: ",channel.probability_roulette);
             if (person) {
-                if (person.type_account == 'primary') {
+                if (person.type_account == 'primary' || person.streamer == true) {
                     console.log("person.points: ",person.points);
                     if (points && person.points >= points) {
                         if (points >= 10) {

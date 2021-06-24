@@ -155,7 +155,7 @@ const authFromCodePerson = async (req, res) => {
                     });
                 }else{
                     return res.status(500).json({
-                        message:'Erro cadastrar usuario.'
+                        message:'Erro cadastrar usuario: '+createOrUpdate.error.message
                     });
                 }
             }
@@ -168,7 +168,7 @@ const authFromCodePerson = async (req, res) => {
     } catch (error) {
         console.log('erro auth from code: ',error);
         return res.status(500).json({
-            message:'Erro ao autenticar usuário, fale com os administradores do sistema.',
+            message:'Erro ao autenticar usuário, fale com os administradores do sistema: '+error.message,
             error:error
         });
     }

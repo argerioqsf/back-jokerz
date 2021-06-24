@@ -1,55 +1,20 @@
 
 // const Canal = require("../../models/Canais");
 const Channel = require('../../schemas/channel');
-const Pessoa = require('../../schemas/pessoa');
 // const botController = require('../../controllers/bot/botController');
 
 const listCanais = async (req, res) => {
+  
     try {
-        const id_user = req.userId?req.userId:null;
         let channels = await Channel.find().populate('id_person').populate({
           path:'id_person',
           populate: { path: 'permissions.ifo_permission' }
         });
-        if (id_user) {
-          let pessoa = await Pessoa.findById(id_user).populate('permissions.ifo_permission');
-          let perm_admin = pessoa?pessoa.permissions.findIndex((permisao)=>{
-              return permisao.ifo_permission.indice === 1;
-          }):-1;
-          if (perm_admin != -1) {
-            return res.status(200).json({
-              data:channels
-            });
-          }else{
-            channels.id_person.ip_user = null;
-            channels.id_person.idTwitch = null;
-            channels.id_person.accessTokenTwitch = null;
-            channels.id_person.refreshTokenTwitch = null;
-            channels.id_person.refreshTokenTwitch = null;
-            channels.id_person.accountsLinks = null;
-            channels.id_person.divisorPoints = null;
-            channels.id_person.accessTokenStreamElements = null;
-            channels.id_person.IdStreamElements = null;
-            return res.status(200).json({
-              data:channels
-            });
-        }
-        }else{
-          channels.id_person.ip_user = null;
-          channels.id_person.idTwitch = null;
-          channels.id_person.accessTokenTwitch = null;
-          channels.id_person.refreshTokenTwitch = null;
-          channels.id_person.refreshTokenTwitch = null;
-          channels.id_person.accountsLinks = null;
-          channels.id_person.divisorPoints = null;
-          channels.id_person.accessTokenStreamElements = null;
-          channels.id_person.IdStreamElements = null;
-          return res.status(200).json({
-            data:channels
-          });
-        }
+        res.status(200).json({
+          data:channels
+        });
     } catch (error) {
-          return res.status(400).send({
+          res.status(400).send({
               message:'ERRO ao listar channels',
               error:error
           });
@@ -73,6 +38,7 @@ const listCanaisParceiros = async (req, res) => {
         channels[i].id_person.divisorPoints = null;
         channels[i].id_person.accessTokenStreamElements = null;
         channels[i].id_person.IdStreamElements = null;
+        channels[i].id_person.roleta = null;
       }
       return res.status(200).json({
         data:channels
