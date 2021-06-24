@@ -236,7 +236,7 @@ exports.scrapsteam = async (response)=>{
                                     price_real:item.price,
                                     imageurl:item.imageurl,
                                     inspectGameLink:item.inspectlink_done,
-                                    exterior:item.exterior,
+                                    exterior:item.exterior && item.exterior != "-"?item.exterior:'',
                                     amount:1,
                                     type:item.type,
                                     assetid:item.assetid,
@@ -245,9 +245,9 @@ exports.scrapsteam = async (response)=>{
                                     stickersinfo:item.stickersinfo,
                                     quant_stickers:item.nostickers,
                                     floatvalue:item.floatvalue,
-                                    paint:item.paint,
-                                    weapon:item.weapon,
-                                    nametag:item.nametag
+                                    paint:item.paint && item.paint != "-"?item.paint:'',
+                                    weapon:item.weapon && item.weapon != "-"?item.weapon:'',
+                                    nametag:item.nametag && item.nametag != "-"?item.nametag:''
                                 }
                                 if (prod) {
                                     for (let i = 0; i < prod.stickersinfo.length; i++) {
@@ -286,10 +286,10 @@ exports.scrapsteam = async (response)=>{
                                     prod.quant_stickers = item.nostickers;
                                     if (item.floatvalue != 'null') {
                                         prod.floatvalue = item.floatvalue;
-                                        prod.paint = item.paint;
-                                        prod.weapon = item.weapon;
+                                        prod.paint = item.paint && item.paint != "-"?item.paint:'';
+                                        prod.weapon = item.weapon && item.weapon != "-"?item.weapon:'';
                                     }
-                                    prod.nametag = item.nametag;
+                                    prod.nametag = item.nametag && item.nametag != "-"?item.nametag:'';
                                     await prod.save();
                                     console.log(i + ' - item '+prod.name+' atualizado: ');
                                     info_register.update = info_register.update+1;
