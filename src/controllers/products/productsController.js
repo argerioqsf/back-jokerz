@@ -141,7 +141,7 @@ const registerProduct = async (req, res) => {
     const id_user = req.userId;
     const data = req.body;
     // console.log("data: ",data);
-    data.price = data.price_real * 1500;
+    data.price = parseInt(data.price_real * 1500);
     data.date_create = new Date();
     let files = req.files;
     let image_product = files.filter((file)=>{return file.fieldname == "imageurl";});
@@ -196,8 +196,8 @@ const editProduct = async (req, res) => {
             let files = req.files;
             let quant_stickers = 0;
             if (data.price_real) {
-                data.price_real = parseFloat(data.price_real?data.price_real:0);
-                data.price = parseFloat(data.price_real?data.price_real * 1500:0);
+                data.price_real = data.price_real?data.price_real:0;
+                data.price = data.price_real?parseInt(data.price_real * 1500):0;
             }
             if (data.quant_stickers) {
                 quant_stickers = data.quant_stickers?parseInt(data.quant_stickers):0;
