@@ -58,6 +58,7 @@ router.put('/person/:id_user',authMiddleware, pessoasController.editPerson);
 
 //canais
 router.get('/channel', authMiddleware,canalController.listCanais);
+router.get('/channel/parceiros', canalController.listCanaisParceiros);
 router.post('/channel/status', authMiddleware,canalController.statusChannel);
 // router.post('/channel', canalController.registerCanal);
 
