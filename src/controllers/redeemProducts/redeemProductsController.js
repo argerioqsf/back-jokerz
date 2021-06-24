@@ -3,6 +3,8 @@ const RedeemProduct = require('../../schemas/RedeemProduct');
 const dotenv = require('dotenv');
 const Pessoa = require('../../schemas/pessoa');
 dotenv.config();
+const { v4: uuidv4 } = require('uuid');
+const RedeemPoints = require('../../schemas/RedeemPoints');
 // const botController = require('../../controllers/bot/botController');
 
 const listRedeemProducts = async (req, res) => {
@@ -83,6 +85,16 @@ const changeStatusRedeemProducts = async (req, res)=> {
             redeemProduct.status = status;
             await person.save();
             await redeemProduct.save();
+            let dataRedeeem = {
+                date:new Date(),
+                amount:redeemProduct.price,
+                id_user:person._id,
+                id_channel:redeemProduct.id_channel,
+                status:'entregue',
+                type:'reembolso',
+                redemption_id:uuidv4()
+            }
+            let redeem = await RedeemPoints.create(dataRedeeem);
         } else {
             let redeem_new = await RedeemProduct.findByIdAndUpdate(id_redeem,{
                 status:status

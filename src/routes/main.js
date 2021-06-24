@@ -90,7 +90,7 @@ router.post('/auth/login_streamer',authController.loginStreamer);
 router.post('/auth/cadastro_streamer', authMiddleware, authController.registerAuthStreamer);
 
 //permissões
-router.post('/adm/permissions',permissionControler.registerPermission);
+router.post('/adm/permissions',authMiddleware, permissionControler.registerPermission);
 router.get('/adm/permissions',permissionControler.listarPermissions);
 
 //Perguntas
