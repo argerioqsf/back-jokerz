@@ -4,6 +4,7 @@ const Channel = require('../../schemas/channel');
 const oauth = require('../../services/oauthtwitch');
 const uuid = require("uuid").v4;
 const pessoasController = require('../../controllers/pessoas/pessoasController');
+const authController = require('../../controllers/auth/authController');
 const canalController = require('../../controllers/canal/canalController');
 // const botController = require('../../controllers/bot/botController');
 const bcrypt = require('bcryptjs');
@@ -124,7 +125,7 @@ exports.authFromCodePerson = async function(req, res){
                                     ...decodedResponse.resp,
                                     user_id:pessoa._id
                                 },
-                                token:genereteToken({ id:pessoa._id }),
+                                token:authController.genereteToken({ id:pessoa._id }),
                             });
                         }else{
                             return res.status(500).json({
@@ -151,7 +152,7 @@ exports.authFromCodePerson = async function(req, res){
                             ...decodedResponse.resp,
                             user_id:createOrUpdate._id
                         },
-                        token:genereteToken({ id:createOrUpdate.data._id }),
+                        token:authController.genereteToken({ id:createOrUpdate.data._id }),
                     });
                 }else{
                     return res.status(500).json({
@@ -215,7 +216,7 @@ exports.registerAuthStreamer = async function(req, res){
                         cad_person.data.password = undefined;
                         return res.status(cad_person.code).json({
                             message:'Conta de Streamer criada com sucesso!',
-                            token:genereteToken({ id:cad_person.data._id }),
+                            token:authController.genereteToken({ id:cad_person.data._id }),
                             data:cad_person.data,
                         });
                         // let join_bot = await botController.addChannel(cad_channel.data._id);
@@ -276,7 +277,7 @@ exports.loginStreamer = async function(req, res){
 
                 return res.status(200).send({
                     message:'usuário autenticado com sucesso',
-                    token:genereteToken({ id:person._id }),
+                    token:authController.genereteToken({ id:person._id }),
                     data:person,
                     channel:channel
                 });
