@@ -37,7 +37,7 @@ const listProducts = async (req, res) => {
         let find = status?{status:status}:{}
         let findFilter = status?{status:status}:{}
         let filtros_type = [];
-        let regra_filtros = ["Pistol","Rifle","Sniper Rifle","SMG","Shotgun","Machinegun","Knife","Glove","Sticker","Agent"];
+        let regra_filtros = ["Pistol","Rifle","Sniper Rifle","SMG","Shotgun","Machinegun","Knife","Gloves","Sticker","Agent"];
         let exists_outros = false;
         let filters_order = [];
 

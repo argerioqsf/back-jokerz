@@ -1,7 +1,7 @@
 var axios = require('axios');
 const jwt = require('jsonwebtoken');
 const Products = require('../../schemas/products');
-const id_owner = '76561198437724880';
+const id_owner = '76561199002891521';
 const name_owenr = 'teamjokerzdudis';
 const steamimgurl = 'https://steamcommunity-a.akamaihd.net/economy/image/';
 // 76561198044858151
