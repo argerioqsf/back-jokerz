@@ -125,7 +125,13 @@ exports.addpoints = async function(reward){
                                 return true;
                             } else {
                                 let deletado = await RedeemPoints.findByIdAndDelete(redeem._id);
+                                person.channels[index_channel].points = person.channels[index_channel].points - new_points;
                                 person.points = person.points - new_points;
+                                if (person.type_account == 'secondary') {
+                                    let person_primary = await Pessoa.findById(person.primary_account_ref);
+                                    person_primary.points = person_primary.points - new_points;
+                                    await person_primary.save();
+                                }
                                 await person.save();
                                 return false;
                             }
@@ -162,7 +168,16 @@ exports.addpoints = async function(reward){
                                 return true;
                             } else {
                                 let deletado = await RedeemPoints.findByIdAndDelete(redeem._id);
+                                let index_channel = person.channels.findIndex(channel_=>{
+                                    return String(channel_.info_channel) == String(channel._id);
+                                });
+                                person.channels[index_channel].points = person.channels[index_channel].points - new_points;
                                 person.points = person.points - new_points;
+                                if (person.type_account == 'secondary') {
+                                    let person_primary = await Pessoa.findById(person.primary_account_ref);
+                                    person_primary.points = person_primary.points - new_points;
+                                    await person_primary.save();
+                                }
                                 await person.save();
                                 return false;
                             }
