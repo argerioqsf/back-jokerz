@@ -109,15 +109,7 @@ const registerRedeemPotionsPendentes = async (req, res)=>{
                                         }
                                     }
                                 }
-                            } else {
-                                return res.status(200).json({
-                                    message:'Sucesso ao cadastrar resgates de pontos pendentes'
-                                });
                             }
-                        } else {
-                            return res.status(200).json({
-                                message:'Sucesso ao cadastrar resgates de pontos pendentes'
-                            });
                         }
                     } else {
                         return res.status(400).json({

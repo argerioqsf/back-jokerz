@@ -106,7 +106,7 @@ exports.listRedemptions = async function(id_reward, id_streamer, status = 'UNFUL
                     return permisao.ifo_permission.indice === 2;
                 }):-1;
                 let reward = await Rewards.findById(id_reward).populate('id_channel');
-                console.log("reward._id: ",reward.id_reward);
+                console.log("reward.id_reward: ",reward.id_reward);
                 if (reward) {
                     if (perm_streamer != -1) {
                         const response = await instance.get(`custom_rewards/redemptions?broadcaster_id=${user_streamer.idTwitch}&reward_id=${reward.id_reward}&status=${status}`);
