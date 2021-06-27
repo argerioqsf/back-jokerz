@@ -124,7 +124,17 @@ exports.addpoints = async function(reward){
                                 console.log("Status do redemptions atualizadoo");
                                 return true;
                             } else {
-                                let deletado = await RedeemPoints.findByIdAndDelete(redeem._id);
+                                let dataRedeeem_erro = {
+                                    date:new Date(),
+                                    amount:-(new_points),
+                                    id_user:person._id,
+                                    id_channel:channel._id,
+                                    status:'entregue',
+                                    reward_id:reward_id,
+                                    redemption_id:uuidv4(),
+                                    type:'ErroFarm'
+                                }
+                                let redeem_erro = await RedeemPoints.create(dataRedeeem_erro);
                                 person.channels[index_channel].points = person.channels[index_channel].points - new_points;
                                 person.points = person.points - new_points;
                                 if (person.type_account == 'secondary') {
@@ -132,7 +142,7 @@ exports.addpoints = async function(reward){
                                     person_primary.points = person_primary.points - new_points;
                                     await person_primary.save();
                                 }
-                                await person.save();
+                                await person.save();    
                                 return false;
                             }
                         }else{
@@ -167,7 +177,17 @@ exports.addpoints = async function(reward){
                                 console.log("Status do redemptions atualizadoo");
                                 return true;
                             } else {
-                                let deletado = await RedeemPoints.findByIdAndDelete(redeem._id);
+                                let dataRedeeem_erro = {
+                                    date:new Date(),
+                                    amount:-(new_points),
+                                    id_user:person._id,
+                                    id_channel:channel._id,
+                                    status:'entregue',
+                                    reward_id:reward_id,
+                                    redemption_id:uuidv4(),
+                                    type:'ErroFarm'
+                                }
+                                let redeem_erro = await RedeemPoints.create(dataRedeeem_erro);
                                 let index_channel = person.channels.findIndex(channel_=>{
                                     return String(channel_.info_channel) == String(channel._id);
                                 });
@@ -209,29 +229,57 @@ exports.addpoints = async function(reward){
                             }
                         ]
                     }
-                    let new_person = await pessoasController.registerPerson(data);
-                    if (new_person.status && new_person.code == 201) {
+                    let new_person = await Pessoa.create(data);
+                    if (new_person) {
                         console.log('Pessoa nova criada: ',new_person);
                         let dataRedeeem = {
                             date:new Date(),
                             amount:new_points,
-                            id_user:new_person.data._id,
+                            id_user:new_person._id,
                             id_channel:channel._id,
                             status:'entregue',
                             reward_id:reward_id,
                             redemption_id:redemption_id
                         }
                         let redeem = await RedeemPoints.create(dataRedeeem);
-                        let redemptions_change_status = await pointsController.changeStatus(person_streamer._id,'FULFILLED',id_twitch_streamer,reward_id,redemption_id,person_streamer.accessTokenTwitch);
-                        if (redemptions_change_status) {
-                            console.log("Status do redemptions atualizadoo");
-                            return true;
-                        } else {
-                            let deletado = await RedeemPoints.findByIdAndDelete(redeem._id);
-                            person.points = person.points - new_points;
-                            await person.save();
+                        if (redeem) {
+                            let redemptions_change_status = await pointsController.changeStatus(person_streamer._id,'FULFILLED',id_twitch_streamer,reward_id,redemption_id,person_streamer.accessTokenTwitch);
+                            if (redemptions_change_status) {
+                                console.log("Status do redemptions atualizadoo");
+                                return true;
+                            } else {
+                                console.log("Erro ao atualizar status na twitch");
+                                let dataRedeeem_erro = {
+                                    date:new Date(),
+                                    amount:-(new_points),
+                                    id_user:new_person._id,
+                                    id_channel:channel._id,
+                                    status:'entregue',
+                                    reward_id:reward_id,
+                                    redemption_id:uuidv4(),
+                                    type:'ErroFarm'
+                                }
+                                let redeem_erro = await RedeemPoints.create(dataRedeeem_erro);
+                                let index_channel = new_person.channels.findIndex(channel_=>{
+                                    return String(channel_.info_channel) == String(channel._id);
+                                });
+                                new_person.channels[index_channel].points = new_person.channels[index_channel].points - new_points;
+                                if (new_person.type_account == 'secondary') {
+                                    let person_primary = await Pessoa.findById(new_person.primary_account_ref);
+                                    person_primary.points = person_primary.points - new_points;
+                                    await person_primary.save();
+                                }
+                                new_person.points = new_person.points - new_points;
+                                await new_person.save();
+                                return false;
+                            }
+                        }else{
+                            console.log("Erro ao criar redeemPoints");
                             return false;
                         }
+                    }else{
+                        console.log("Erro ao adicionar ponto, usuario nao criado");
+                        return false;
                     }
                 }
             }
@@ -239,13 +287,13 @@ exports.addpoints = async function(reward){
            console.log("reward não cadastrado pelo sistema addpoints"); 
         }
     } catch (error) {
-        // console.log("error addpoints: ", error);
+        console.log("error addpoints: ", error.message);
         if (error.response) {
-        console.log("error addpoints: ", error.response.data.message);
+        console.log("error addpoints response: ", error.response.data.message);
         } else if (error.request) {
-        console.log("error addpoints: ", error.message);
+        console.log("error addpoints request: ", error.message);
         } else {
-        console.log("error addpoints: ", error.message);
+        console.log("error addpoints desconhecido: ", error.message);
         }
     }
 }
@@ -513,7 +561,7 @@ exports.changeStatus = async function(id_streamer, status, id_twitch, reward_id,
             if (error.response) {
                 // console.log('error response: ',error.response);
                 console.log('error changeStatus response status: ',error.response.status);
-                console.log('error changeStatus response: ',error.response);
+                console.log('error changeStatus message: ',error.message);
                 if (error.response.status == 401) {
                     // console.log('error changeStatus response: ',error.response);
                     let resp = await authController.refreshToken(id_streamer);

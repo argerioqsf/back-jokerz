@@ -38,6 +38,7 @@ const RedeemPoints = new mongoose.Schema({
 		default:'farm'
 	}
 	//farm
+	//ErroFarm
 	//adicionado
 	//roleta
 	//drop
