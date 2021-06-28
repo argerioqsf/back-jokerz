@@ -134,6 +134,7 @@ exports.addpoints = async function(reward){
                                     redemption_id:uuidv4(),
                                     type:'ErroFarm'
                                 }
+                                let redeem_update = await RedeemPoints.findByIdAndUpdate(redeem._id,{redemption_id:uuidv4()});
                                 let redeem_erro = await RedeemPoints.create(dataRedeeem_erro);
                                 person.channels[index_channel].points = person.channels[index_channel].points - new_points;
                                 person.points = person.points - new_points;
@@ -187,6 +188,7 @@ exports.addpoints = async function(reward){
                                     redemption_id:uuidv4(),
                                     type:'ErroFarm'
                                 }
+                                let redeem_update = await RedeemPoints.findByIdAndUpdate(redeem._id,{redemption_id:uuidv4()});
                                 let redeem_erro = await RedeemPoints.create(dataRedeeem_erro);
                                 let index_channel = person.channels.findIndex(channel_=>{
                                     return String(channel_.info_channel) == String(channel._id);
@@ -259,6 +261,7 @@ exports.addpoints = async function(reward){
                                     redemption_id:uuidv4(),
                                     type:'ErroFarm'
                                 }
+                                let redeem_update = await RedeemPoints.findByIdAndUpdate(redeem._id,{redemption_id:uuidv4()});
                                 let redeem_erro = await RedeemPoints.create(dataRedeeem_erro);
                                 let index_channel = new_person.channels.findIndex(channel_=>{
                                     return String(channel_.info_channel) == String(channel._id);
