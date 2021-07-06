@@ -42,6 +42,9 @@ const RedeemPoints = new mongoose.Schema({
 	//adicionado
 	//roleta
 	//drop
+	//vinculacao
+	//ErroVinculacao
+
 })
 
 
