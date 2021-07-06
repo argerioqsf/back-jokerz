@@ -135,8 +135,14 @@ const findPessoaById = async (req, res) => {
 const findPerson = async (req, res) => {
     console.log('req.userId: ',req.userId);
     try {
-        let person = await Pessoa.findById(req.userId).populate('primary_account_ref').populate('secondary_accounts').populate('permissions.ifo_permission')
-        .populate('channels.info_channel').populate('accountsLinks.info_accountLink');
+        let person = await Pessoa.findById(req.userId)
+        .populate('primary_account_ref')
+        .populate('secondary_accounts')
+        .populate('permissions.ifo_permission')
+        .populate('channels.info_channel')
+        .populate('contas_vinculadas.info_user')
+        .populate('conta_vinculada')
+        .populate('accountsLinks.info_accountLink');
         res.status(200).json({
           data:person
         });
@@ -271,7 +277,7 @@ const addChannel = async (req, res) => {
 };
 
 const setTypePerson = async (req, res) => {
-    const { type_account, id_person_primary = false } = req.body;
+    const { type_account, id_person_primary = false, codigo = null } = req.body;
     let id_person = req.userId;
     try {
         let person = await Pessoa.findById(id_person);
@@ -280,6 +286,7 @@ const setTypePerson = async (req, res) => {
             console.log('person: ',person);
             if (person.type_account == 'pendente') {
                 person.type_account = type_account;
+                
                 if (type_account == 'secondary' && id_person_primary) {
                     person.primary_account_ref = id_person_primary;
                     let person_primary = await Pessoa.findById(id_person_primary);
@@ -289,6 +296,7 @@ const setTypePerson = async (req, res) => {
                             message:'Conta primária já excedeu o limite de contas secundárias vinculadas',
                         });
                     }
+
                     person_primary.points = person_primary.points + person.points;
                     person_primary.secondary_accounts = [
                         ...person_primary.secondary_accounts,
@@ -298,15 +306,34 @@ const setTypePerson = async (req, res) => {
                 }
 
                 if (type_account == 'primary') {
-                    let person = await Pessoa.findById(id_person);
+                    // let person = await Pessoa.findById(id_person);
                     const ip = person.ip_user?person.ip_user:'';
                     let persons_primary = await Pessoa.find({ip_user:ip,type_account:'primary'});
                     if (persons_primary.length > 0) {
                         return res.status(400).json({
                             message:'Erro ao setar o tipo de conta, limite de contas primarias esgotado',
                         });
+                    }else{
+                        if (codigo != null) {
+                            let person_vincular = await Pessoa.findOne({idTwitch:codigo});
+                            if (person_vincular) {
+                                person_vincular.contas_vinculadas = [
+                                    ...person_vincular.contas_vinculadas,
+                                    {
+                                        info_user:person._id
+                                    }
+                                ]
+                                await person_vincular.save();
+                                person.conta_vinculada = person_vincular._id;
+                            }else{
+                                return res.status(400).json({
+                                    message:'Erro ao setar o tipo de conta: Código inválido',
+                                });
+                            }
+                        }
                     }
                 }
+
                 let person_up = await person.save();
                 res.status(200).json({
                     message:'Tipo de conta '+type_account+' setado com sucesso!',
