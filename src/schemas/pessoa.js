@@ -82,6 +82,21 @@ const Pessoa = new mongoose.Schema({
 			default:false
 		}
 	}],
+	contas_vinculadas:[{
+		info_user:{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Pessoa',
+			required:true
+		},
+		status:{
+			type:Boolean,
+			default:true
+		},
+		points:{
+			type:Number,
+			default:0
+		}
+	}],
 	timeon: {
 		type: String,
 	},
@@ -97,10 +112,6 @@ const Pessoa = new mongoose.Schema({
 			}
 		}
 	],
-	// permissions:{
-	// 	type:String,
-	// 	required:true
-	// },
 	tradelinkSteam:{
 		type:String,
 		default:''
@@ -113,6 +124,10 @@ const Pessoa = new mongoose.Schema({
 		default:'pendente'
 	},
 	primary_account_ref:{
+		type: mongoose.Schema.Types.ObjectId,
+		ref:'Pessoa'
+	},
+	conta_vinculada:{
 		type: mongoose.Schema.Types.ObjectId,
 		ref:'Pessoa'
 	},
@@ -132,7 +147,6 @@ const Pessoa = new mongoose.Schema({
 		type: String,
 		default:'15'
 	}
-
 })
 
 Pessoa.pre('save',async function(next){
