@@ -69,6 +69,58 @@ exports.verifyQuantAccountFarm = async function (id_channel, id_primary_account)
     });
 }
 
+async function verificavinculo(person,channel,new_points, operador){
+    return new Promise(async(resolve, reject)=>{
+        try {
+            if (person.conta_vinculada) {
+                console.log('tem conta vinculada: ',String(person.conta_vinculada));
+                let person_vinculada = await Pessoa.findById(person.conta_vinculada);
+                if (person_vinculada) {
+                    person_vinculada.points = 
+                    operador == '-'?
+                    person_vinculada.points - (new_points * channel.porcetagem_indicacao)/100
+                    :
+                    person_vinculada.points + (new_points * channel.porcetagem_indicacao)/100
+                    ;
+                    let index_person_vinculada = person_vinculada.contas_vinculadas.findIndex(conta_vinc=>{
+                        return String(conta_vinc.info_user) == String(person._id);
+                    });
+                    if (index_person_vinculada != -1) {
+                        person_vinculada.contas_vinculadas[index_person_vinculada].points = 
+                        operador == '-'?
+                        person_vinculada.contas_vinculadas[index_person_vinculada].points - (new_points * channel.porcetagem_indicacao)/100:
+                        person_vinculada.contas_vinculadas[index_person_vinculada].points + (new_points * channel.porcetagem_indicacao)/100;
+                    }
+                    await person_vinculada.save();
+                    let dataRedeeem_vinculado_erro = {
+                        date:new Date(),
+                        amount:
+                        operador == '-'?
+                        -((new_points * channel.porcetagem_indicacao)/100)
+                        :
+                        ((new_points * channel.porcetagem_indicacao)/100)
+                        ,
+                        id_user:person_vinculada._id,
+                        id_channel:channel._id,
+                        status:'entregue',
+                        redemption_id:uuidv4(),
+                        type:
+                        operador == '-'?
+                        'ErroVinculacao':
+                        'vinculacao'
+                    }
+                    let redeem_vinculado = await RedeemPoints.create(dataRedeeem_vinculado_erro);
+                    resolve(true);
+                }
+            }else{
+                resolve(false);
+            }
+        } catch (error) {
+            resolve(false);
+        }
+    });
+}
+
 exports.addpoints = async function(reward){
     try {
         let { 
@@ -106,6 +158,7 @@ exports.addpoints = async function(reward){
                                 let person_primary = await Pessoa.findById(person.primary_account_ref);
                                 person_primary.points = person_primary.points + new_points;
                                 await person_primary.save();
+                                let resp_verificavinculo_primaria = await verificavinculo(person_primary,channel,new_points,'+');
                             }
                             person.channels[index_channel].status = true;
                             await person.save();
@@ -119,6 +172,7 @@ exports.addpoints = async function(reward){
                                 redemption_id:redemption_id
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
+                            let resp_verificavinculo = await verificavinculo(person,channel,new_points,'+');
                             let redemptions_change_status = await pointsController.changeStatus(person_streamer._id,'FULFILLED',id_twitch_streamer,reward_id,redemption_id,person_streamer.accessTokenTwitch);
                             if (redemptions_change_status) {
                                 console.log("Status do redemptions atualizadoo");
@@ -142,7 +196,9 @@ exports.addpoints = async function(reward){
                                     let person_primary = await Pessoa.findById(person.primary_account_ref);
                                     person_primary.points = person_primary.points - new_points;
                                     await person_primary.save();
+                                    let resp_verificavinculo_primaria_erro = await verificavinculo(person_primary,channel,new_points,'-');
                                 }
+                                let resp_verificavinculo_erro = await verificavinculo(person,channel,new_points,'-');
                                 await person.save();    
                                 return false;
                             }
@@ -153,6 +209,7 @@ exports.addpoints = async function(reward){
                                 let person_primary = await Pessoa.findById(person.primary_account_ref);
                                 person_primary.points = person_primary.points + new_points;
                                 await person_primary.save();
+                                let resp_verificavinculo_primaria = await verificavinculo(person_primary,channel,new_points,'+');
                             }
                             person.channels = [
                                 ...person.channels,
@@ -173,6 +230,7 @@ exports.addpoints = async function(reward){
                                 redemption_id:redemption_id
                             }
                             let redeem = await RedeemPoints.create(dataRedeeem);
+                            let resp_verificavinculo = await verificavinculo(person,channel,new_points,'+');
                             let redemptions_change_status = await pointsController.changeStatus(person_streamer._id,'FULFILLED',id_twitch_streamer,reward_id,redemption_id,person_streamer.accessTokenTwitch);
                             if (redemptions_change_status) {
                                 console.log("Status do redemptions atualizadoo");
@@ -199,7 +257,9 @@ exports.addpoints = async function(reward){
                                     let person_primary = await Pessoa.findById(person.primary_account_ref);
                                     person_primary.points = person_primary.points - new_points;
                                     await person_primary.save();
+                                    let resp_verificavinculo_primaria = await verificavinculo(person_primary,channel,new_points,'-');
                                 }
+                                let resp_verificavinculo_erro = await verificavinculo(person,channel,new_points,'-');
                                 await person.save();
                                 return false;
                             }
