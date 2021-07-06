@@ -51,6 +51,10 @@ const Channel = new mongoose.Schema({
 		type:Number,
 		default:45
 	},
+	porcetagem_indicacao:{
+		type:Number,
+		default:50
+	},
 	picture: {
 		type: String
 	}
