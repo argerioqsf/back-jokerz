@@ -5,6 +5,8 @@ const PubSubTwitch = require('../../services/pubsubTwitch');
 const Pessoa = require('../../schemas/pessoa');
 const Channel = require('../../schemas/channel');
 const AccountsLink = require('../../schemas/AccountsLink');
+var file = require('./pessoas.json');
+var ObjectID = require('mongodb').ObjectID;
 
 const listPessoas = async (req, res) => {
     try {
@@ -503,6 +505,19 @@ const setPersonSyncPointsInitial = async ()=>{
     });
 }
 
+const restoreMongo = async ()=>{
+    try {
+        file.map(elem => {
+            elem._id = ObjectID(elem._id)
+            await Pessoa.insertOne(elem, function(err, res) { //collection
+                if (err) throw err;
+            });
+        })
+    } catch (error) {
+        console.log("Erro ao fazer restore: ",error.message);
+    }
+}
+
 module.exports = {
     listPessoas,
     registerPerson,
@@ -520,5 +535,6 @@ module.exports = {
     setAccountLink,
     changePointsSyncTwitch,
     setPersonSyncPointsInitial,
-    editPerson
+    editPerson,
+    restoreMongo
 }
