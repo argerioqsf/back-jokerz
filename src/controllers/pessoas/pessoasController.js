@@ -507,7 +507,7 @@ const setPersonSyncPointsInitial = async ()=>{
 
 const restoreMongo = async ()=>{
     try {
-        file.map(elem => {
+        file.map(async (elem) => {
             elem._id = ObjectID(elem._id)
             await Pessoa.insertOne(elem, function(err, res) { //collection
                 if (err) throw err;
