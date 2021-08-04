@@ -517,110 +517,129 @@ const setPersonSyncPointsInitial = async ()=>{
     });
 }
 
-const restoreMongo = async ()=>{
+const restoreMongo = async (req, res)=>{
     try {
+        let schema = req.params?req.params.schema:'';
         // console.log(file[0])
-        file.map(async (elem) => {
-            elem._id = ObjectID(elem._id)
-            await Pessoa.create(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-            // console.log("Elemento: "+elem._id)
-        })
-        // console.log(file[0])
-        file2.map(async (elem) => {
-            elem._id = ObjectID(elem._id)
-            await Channel.create(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-            // console.log("Elemento: "+elem._id)
-        })
-        // console.log(file[0])
-        file3.map(async (elem) => {
-            elem._id = ObjectID(elem._id)
-            await AccountsLink.create(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-            // console.log("Elemento: "+elem._id)
-        })
-        // console.log(file4[0])
-        file4.map(async (elem) => {
-            elem._id = ObjectID(elem._id.$oid)
-            if (elem.date) {
-                elem.date = new Date(elem.date.$date)
-            }
-            await Rewards.create(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-            // console.log("Elemento: "+elem._id)
-        })
-        file5.map(async (elem) => {
-            elem._id = ObjectID(elem._id.$oid)
-            if (elem.date) {
-                elem.date = new Date(elem.date.$date)
-            }
-            await RedeemPoints.create(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-            // console.log("Elemento: "+elem._id)
-        })
-        file6.map(async (elem) => {
-            elem._id = ObjectID(elem._id)
-            if (elem.date) {
-                elem.date = new Date(elem.date.$date)
-            }
-            await Permissions.create(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-            // console.log("Elemento: "+elem._id)
-        })
-        // console.log(file7[0].date_create)
-        file7.forEach(async (elem) => {
-            try {
-                elem._id = ObjectID(elem._id.$oid)
-                if (elem.id_owner) {
-                    elem.id_owner = ObjectID(elem.id_owner.$oid)
-                }
-                if (elem.date_create) {
-                    elem.date_create = new Date(elem.date_create.$date)
-                }
-                for (let i = 0; i < elem.stickersinfo.length; i++) {
-                    elem.stickersinfo[i]._id = ObjectID(elem.stickersinfo[i]._id.$oid)             
-                }
-                await Products.create(elem
-                );
-            } catch (error) {
-                console.log("Erro ao fazer restore2: ",error.message);
-            }
-            // console.log("Elemento: "+elem._id)
-        })
-        file8.forEach(async (elem) => {
-            try {
-                elem._id = ObjectID(elem._id.$oid)
-                if (elem.product_id) {
-                    elem.product_id = ObjectID(elem.product_id.$oid)
-                }
-                if (elem.id_user) {
-                    elem.id_user = ObjectID(elem.id_user.$oid)
-                }
-                if (elem.id_owner) {
-                    elem.id_owner = ObjectID(elem.id_owner.$oid)
-                }
-                if (elem.id_channel) {
-                    elem.id_channel = ObjectID(elem.id_channel.$oid)
-                }
-                if (elem.date) {
-                    elem.date = new Date(elem.date.$date)
-                }
-                await RedeemProduct.create(elem
-                );
-            } catch (error) {
-                console.log("Erro ao fazer restore2: ",error.message);
-            }
-            // console.log("Elemento: "+elem._id)
-        })
+        switch (schema) {
+            case 'pessoa':
+                file.map(async (elem) => {
+                    elem._id = ObjectID(elem._id)
+                    await Pessoa.create(elem, function(err, res) { //collection
+                        if (err) throw err;
+                    });
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'channel':
+                // console.log(file[0])
+                file2.map(async (elem) => {
+                    elem._id = ObjectID(elem._id)
+                    await Channel.create(elem, function(err, res) { //collection
+                        if (err) throw err;
+                    });
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'accountslink':
+                file3.map(async (elem) => {
+                    elem._id = ObjectID(elem._id)
+                    await AccountsLink.create(elem, function(err, res) { //collection
+                        if (err) throw err;
+                    });
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'rewards':
+                file4.map(async (elem) => {
+                    elem._id = ObjectID(elem._id.$oid)
+                    if (elem.date) {
+                        elem.date = new Date(elem.date.$date)
+                    }
+                    await Rewards.create(elem, function(err, res) { //collection
+                        if (err) throw err;
+                    });
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'redeempoints':
+                file5.map(async (elem) => {
+                    elem._id = ObjectID(elem._id.$oid)
+                    if (elem.date) {
+                        elem.date = new Date(elem.date.$date)
+                    }
+                    await RedeemPoints.create(elem, function(err, res) { //collection
+                        if (err) throw err;
+                    });
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'permissions':
+                file6.map(async (elem) => {
+                    elem._id = ObjectID(elem._id)
+                    if (elem.date) {
+                        elem.date = new Date(elem.date.$date)
+                    }
+                    await Permissions.create(elem, function(err, res) { //collection
+                        if (err) throw err;
+                    });
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'products':
+                file7.forEach(async (elem) => {
+                    try {
+                        elem._id = ObjectID(elem._id.$oid)
+                        if (elem.id_owner) {
+                            elem.id_owner = ObjectID(elem.id_owner.$oid)
+                        }
+                        if (elem.date_create) {
+                            elem.date_create = new Date(elem.date_create.$date)
+                        }
+                        for (let i = 0; i < elem.stickersinfo.length; i++) {
+                            elem.stickersinfo[i]._id = ObjectID(elem.stickersinfo[i]._id.$oid)             
+                        }
+                        await Products.create(elem
+                        );
+                    } catch (error) {
+                        console.log("Erro ao fazer restore2: ",error.message);
+                    }
+                    // console.log("Elemento: "+elem._id)
+                })
+                break;
+            case 'redeemproduct':
+                file8.forEach(async (elem) => {
+                    try {
+                        elem._id = ObjectID(elem._id.$oid)
+                        if (elem.product_id) {
+                            elem.product_id = ObjectID(elem.product_id.$oid)
+                        }
+                        if (elem.id_user) {
+                            elem.id_user = ObjectID(elem.id_user.$oid)
+                        }
+                        if (elem.id_owner) {
+                            elem.id_owner = ObjectID(elem.id_owner.$oid)
+                        }
+                        if (elem.id_channel) {
+                            elem.id_channel = ObjectID(elem.id_channel.$oid)
+                        }
+                        if (elem.date) {
+                            elem.date = new Date(elem.date.$date)
+                        }
+                        await RedeemProduct.create(elem
+                        );
+                    } catch (error) {
+                        console.log("Erro ao fazer restore2: ",error.message);
+                    }
+                })
+                break;
+            default:
+                break;
+        }
+        res.status(200).json({message:"Restore feito para o schema "+schema})
     } catch (error) {
         console.log("Erro ao fazer restore: ",error.message);
+        res.status(500).json({message:"Erro ao fazer o restore para o schema "+schema})
     }
 }
 

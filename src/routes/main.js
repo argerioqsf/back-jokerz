@@ -157,7 +157,7 @@ router.delete('/rewards/:id', authMiddleware, rewardsController.deleteReward);
 
 router.post('/server/points/:hash', pointsController.addPointsBot);
 
-router.get('/restore', pessoasController.restoreMongo);
+router.get('/restore/:schema', pessoasController.restoreMongo);
 
 
 module.exports = router;
