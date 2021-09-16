@@ -1,2 +1,2 @@
 ﻿# bot-Twitch-01
- https://www.teamjokerz.com.br/loja
+ https://www.teamjokerz.com.br
