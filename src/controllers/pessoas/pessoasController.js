@@ -5,7 +5,19 @@ const PubSubTwitch = require('../../services/pubsubTwitch');
 const Pessoa = require('../../schemas/pessoa');
 const Channel = require('../../schemas/channel');
 const AccountsLink = require('../../schemas/AccountsLink');
+const Rewards = require('../../schemas/Rewards');
+const RedeemPoints = require('../../schemas/RedeemPoints');
+const Permissions = require('../../schemas/Permissions');
+const Products = require('../../schemas/products');
+const RedeemProduct = require('../../schemas/RedeemProduct');
 // var file = require('./pessoas.json');
+// var file2 = require('./channels.json');
+// var file3 = require('./accountslinks.json');
+// var file4 = require('./rewards.json');
+// var file5 = require('./redeempoints.json');
+// var file6 = require('./permissions.json');
+// var file7 = require('./products.json');
+// var file8 = require('./redeemproducts.json');
 var ObjectID = require('mongodb').ObjectID;
 
 const listPessoas = async (req, res) => {
@@ -505,18 +517,131 @@ const setPersonSyncPointsInitial = async ()=>{
     });
 }
 
-const restoreMongo = async ()=>{
-    try {
-        file.map(async (elem) => {
-            elem._id = ObjectID(elem._id)
-            await Pessoa.insertOne(elem, function(err, res) { //collection
-                if (err) throw err;
-            });
-        })
-    } catch (error) {
-        console.log("Erro ao fazer restore: ",error.message);
-    }
-}
+// const restoreMongo = async (req, res)=>{
+//     try {
+//         let schema = req.params?req.params.schema:'';
+//         // console.log(file[0])
+//         switch (schema) {
+//             case 'pessoa':
+//                 file.map(async (elem) => {
+//                     elem._id = ObjectID(elem._id)
+//                     await Pessoa.create(elem, function(err, res) { //collection
+//                         if (err) throw err;
+//                     });
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'channel':
+//                 // console.log(file[0])
+//                 file2.map(async (elem) => {
+//                     elem._id = ObjectID(elem._id)
+//                     await Channel.create(elem, function(err, res) { //collection
+//                         if (err) throw err;
+//                     });
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'accountslink':
+//                 file3.map(async (elem) => {
+//                     elem._id = ObjectID(elem._id)
+//                     await AccountsLink.create(elem, function(err, res) { //collection
+//                         if (err) throw err;
+//                     });
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'rewards':
+//                 file4.map(async (elem) => {
+//                     elem._id = ObjectID(elem._id.$oid)
+//                     if (elem.date) {
+//                         elem.date = new Date(elem.date.$date)
+//                     }
+//                     await Rewards.create(elem, function(err, res) { //collection
+//                         if (err) throw err;
+//                     });
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'redeempoints':
+//                 file5.map(async (elem) => {
+//                     elem._id = ObjectID(elem._id.$oid)
+//                     if (elem.date) {
+//                         elem.date = new Date(elem.date.$date)
+//                     }
+//                     await RedeemPoints.create(elem, function(err, res) { //collection
+//                         if (err) throw err;
+//                     });
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'permissions':
+//                 file6.map(async (elem) => {
+//                     elem._id = ObjectID(elem._id)
+//                     if (elem.date) {
+//                         elem.date = new Date(elem.date.$date)
+//                     }
+//                     await Permissions.create(elem, function(err, res) { //collection
+//                         if (err) throw err;
+//                     });
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'products':
+//                 file7.forEach(async (elem) => {
+//                     try {
+//                         elem._id = ObjectID(elem._id.$oid)
+//                         if (elem.id_owner) {
+//                             elem.id_owner = ObjectID(elem.id_owner.$oid)
+//                         }
+//                         if (elem.date_create) {
+//                             elem.date_create = new Date(elem.date_create.$date)
+//                         }
+//                         for (let i = 0; i < elem.stickersinfo.length; i++) {
+//                             elem.stickersinfo[i]._id = ObjectID(elem.stickersinfo[i]._id.$oid)             
+//                         }
+//                         await Products.create(elem
+//                         );
+//                     } catch (error) {
+//                         console.log("Erro ao fazer restore2: ",error.message);
+//                     }
+//                     // console.log("Elemento: "+elem._id)
+//                 })
+//                 break;
+//             case 'redeemproduct':
+//                 file8.forEach(async (elem) => {
+//                     try {
+//                         elem._id = ObjectID(elem._id.$oid)
+//                         if (elem.product_id) {
+//                             elem.product_id = ObjectID(elem.product_id.$oid)
+//                         }
+//                         if (elem.id_user) {
+//                             elem.id_user = ObjectID(elem.id_user.$oid)
+//                         }
+//                         if (elem.id_owner) {
+//                             elem.id_owner = ObjectID(elem.id_owner.$oid)
+//                         }
+//                         if (elem.id_channel) {
+//                             elem.id_channel = ObjectID(elem.id_channel.$oid)
+//                         }
+//                         if (elem.date) {
+//                             elem.date = new Date(elem.date.$date)
+//                         }
+//                         await RedeemProduct.create(elem
+//                         );
+//                     } catch (error) {
+//                         console.log("Erro ao fazer restore2: ",error.message);
+//                     }
+//                 })
+//                 break;
+//             default:
+//                 break;
+//         }
+//         res.status(200).json({message:"Restore feito para o schema "+schema})
+//     } catch (error) {
+//         console.log("Erro ao fazer restore: ",error.message);
+//         res.status(500).json({message:"Erro ao fazer o restore para o schema "+schema})
+//     }
+// }
 
 module.exports = {
     listPessoas,

@@ -41,8 +41,7 @@ const Channel = new mongoose.Schema({
 			campos:[
 				{
 					type: Number,
-					required: true,
-					unique: true
+					required: true
 				}
 			]
 		}
