@@ -5,7 +5,7 @@ const PubSubTwitch = require('../../services/pubsubTwitch');
 const Pessoa = require('../../schemas/pessoa');
 const Channel = require('../../schemas/channel');
 const AccountsLink = require('../../schemas/AccountsLink');
-var file = require('./pessoas.json');
+// var file = require('./pessoas.json');
 var ObjectID = require('mongodb').ObjectID;
 
 const listPessoas = async (req, res) => {

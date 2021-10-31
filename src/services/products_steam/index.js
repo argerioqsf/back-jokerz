@@ -1,8 +1,7 @@
 var axios = require('axios');
 const jwt = require('jsonwebtoken');
 const Products = require('../../schemas/products');
-const id_owner = '76561198044858151';
-const name_owenr = 'teamjokerzdudis';
+const id_owner = '76561199031521786';
 const steamimgurl = 'https://steamcommunity-a.akamaihd.net/economy/image/';
 // 76561198044858151
 // teamjokerzdudis
@@ -14,7 +13,11 @@ const steamimgurl = 'https://steamcommunity-a.akamaihd.net/economy/image/';
 // teamjokerznath
 
 // 76561198399029270
-// argerioaf,
+// argerioaf
+
+//76561199031521786
+//lojanath
+
 async function organizeItens (data_descriptions, data_assets, i){
     return new Promise(async(resolve,reject)=>{
         try {
@@ -227,7 +230,7 @@ exports.scrapsteam = async (response)=>{
                                 let item = itens_organizados;
                                 let prod = await Products.findOne({
                                     name:item.market_name,
-                                    class_id:item.classid,
+                                    instanceid:item.instanceid,
                                     assetid:item.assetid 
                                 });
         
