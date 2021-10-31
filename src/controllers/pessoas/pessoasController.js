@@ -661,5 +661,5 @@ module.exports = {
     changePointsSyncTwitch,
     setPersonSyncPointsInitial,
     editPerson,
-    restoreMongo
+    // restoreMongo
 }
